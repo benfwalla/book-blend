@@ -131,7 +131,7 @@ export default function Page() {
         </p>
         <div className="flex gap-2 items-end">
           <Input
-            placeholder="e.g. 42944663 or https://www.goodreads.com/user/show/42944663-ben-wallace"
+            placeholder="e.g. https://www.goodreads.com/user/show/42944663-ben-wallace or 42944663"
             value={rawUser}
             onChange={(e) => setRawUser(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFetchUser()}
