@@ -141,10 +141,20 @@ export default function Page() {
             onKeyDown={(e) => e.key === "Enter" && handleFetchUser()}
             onPaste={(e) => {
               const text = e.clipboardData.getData("text");
-              const match = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
-              if (match && match[0]) {
+              const html = e.clipboardData.getData("text/html");
+              // Try HTML first (iOS Safari often pastes rich text with anchor href)
+              let url: string | null = null;
+              if (html) {
+                const hrefMatch = html.match(/href=\"([^\"]*goodreads\.com\/user\/show\/[^\"]*)\"/i);
+                if (hrefMatch && hrefMatch[1]) url = hrefMatch[1];
+              }
+              if (!url && text) {
+                const textMatch = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
+                if (textMatch && textMatch[0]) url = textMatch[0];
+              }
+              if (url) {
                 e.preventDefault();
-                setRawUser(match[0]);
+                setRawUser(url);
               }
             }}
           />
@@ -211,11 +221,20 @@ export default function Page() {
                   }}
                   onPaste={(e) => {
                     const text = e.clipboardData.getData("text");
-                    const match = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
-                    if (match && match[0]) {
+                    const html = e.clipboardData.getData("text/html");
+                    let url: string | null = null;
+                    if (html) {
+                      const hrefMatch = html.match(/href=\"([^\"]*goodreads\.com\/user\/show\/[^\"]*)\"/i);
+                      if (hrefMatch && hrefMatch[1]) url = hrefMatch[1];
+                    }
+                    if (!url && text) {
+                      const textMatch = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
+                      if (textMatch && textMatch[0]) url = textMatch[0];
+                    }
+                    if (url) {
                       e.preventDefault();
                       setSelectedFriendId(null);
-                      setSecondRaw(match[0]);
+                      setSecondRaw(url);
                     }
                   }}
                 />
