@@ -130,11 +130,23 @@ export default function Page() {
           {" →  "}Profile picture{" → "}Profile. Copy the URL.
         </p>
         <div className="flex gap-2 items-end">
+          {/* Helper to sanitize Goodreads app share text on paste */}
+          {/* When users paste e.g. "Check out my profile on Goodreads! https://www.goodreads.com/user/show/42944663" */}
+          {/* we extract just the URL for a clean input. */}
+          {null}
           <Input
             placeholder="e.g. https://www.goodreads.com/user/show/42944663-ben-wallace or 42944663"
             value={rawUser}
             onChange={(e) => setRawUser(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFetchUser()}
+            onPaste={(e) => {
+              const text = e.clipboardData.getData("text");
+              const match = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
+              if (match && match[0]) {
+                e.preventDefault();
+                setRawUser(match[0]);
+              }
+            }}
           />
           <Button onClick={handleFetchUser} disabled={loadingUser} className="shrink-0 whitespace-nowrap">Look up</Button>
         </div>
@@ -196,6 +208,15 @@ export default function Page() {
                   onChange={(e) => {
                     setSelectedFriendId(null);
                     setSecondRaw(e.target.value);
+                  }}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData("text");
+                    const match = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
+                    if (match && match[0]) {
+                      e.preventDefault();
+                      setSelectedFriendId(null);
+                      setSecondRaw(match[0]);
+                    }
                   }}
                 />
                 {!secondUserId && (
