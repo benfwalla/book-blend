@@ -266,7 +266,7 @@ export default function Page() {
             {/* Right: manual entry card */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-center text-sm text-gray-600 md:hidden">or</div>
-              <div className="rounded-md border bg-white px-3 py-2.5 flex flex-col gap-2 min-h-[16rem]">
+              <div className="rounded-md border bg-white px-3 py-2.5 flex flex-col gap-2">
                 <Input
                   type="url"
                   spellCheck={false}
@@ -298,9 +298,6 @@ export default function Page() {
                     }
                   }}
                 />
-                {!secondUserId && (
-                  <div className="text-xs text-gray-600">Enter a valid profile URL/ID or select a friend.</div>
-                )}
               </div>
             </div>
           </div>
@@ -331,10 +328,10 @@ export default function Page() {
                 {selectedFriendId ? (
                   (() => {
                     const f = friends.find((x) => x.id === selectedFriendId);
-                    return f ? <span className="text-gray-600"> &middot; {f.name}</span> : null;
+                    return f ? <span className="font-medium"> &middot; {f.name}</span> : null;
                   })()
                 ) : secondUserId ? (
-                  <span className="text-gray-600"> &middot; entered user</span>
+                  <span className="font-medium"> &middot; entered user</span>
                 ) : null}
               </div>
             </div>
