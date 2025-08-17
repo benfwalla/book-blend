@@ -81,8 +81,11 @@ export default function Page() {
         return bn - an;
       });
       setFriends(sorted);
-      // persist last used primary user id
-      try { localStorage.setItem("bb_last_user_id", uid); } catch {}
+      // persist last used primary user id and what the user actually entered (URL or ID)
+      try {
+        localStorage.setItem("bb_last_user_id", uid);
+        localStorage.setItem("bb_last_user_display", rawUser);
+      } catch {}
     } catch (e: any) {
       setError(e?.message ?? "Failed to load user");
       pushToast({ title: "Failed to load user", description: String(e?.message ?? "Unknown error"), variant: "destructive" });
@@ -103,6 +106,14 @@ export default function Page() {
       try {
         localStorage.setItem("bb_last_user_id", userId);
         localStorage.setItem("bb_last_second_user_id", secondUserId);
+        // also persist display values: what user saw/entered
+        localStorage.setItem("bb_last_user_display", rawUser);
+        // prefer manual secondRaw; if none and a friend was selected, store friend's URL
+        if (secondRaw) {
+          localStorage.setItem("bb_last_second_user_display", secondRaw);
+        } else if (selectedFriendId) {
+          localStorage.setItem("bb_last_second_user_display", `https://www.goodreads.com/user/show/${selectedFriendId}`);
+        }
       } catch {}
     } catch (e: any) {
       setError(e?.message ?? "Failed to fetch blend");
@@ -112,11 +123,15 @@ export default function Page() {
     }
   }, [userId, secondUserId]);
 
-  // prefill from localStorage
+  // prefill from localStorage (prefer original display value user typed/pasted)
   useEffect(() => {
     try {
-      const last = localStorage.getItem("bb_last_user_id");
-      if (last) setRawUser(last);
+      const display = localStorage.getItem("bb_last_user_display");
+      const legacy = localStorage.getItem("bb_last_user_id");
+      const secondDisplay = localStorage.getItem("bb_last_second_user_display");
+      if (display) setRawUser(display);
+      else if (legacy) setRawUser(legacy);
+      if (secondDisplay) setSecondRaw(secondDisplay);
     } catch {}
   }, []);
 
@@ -171,6 +186,11 @@ export default function Page() {
           {/* we extract just the URL for a clean input. */}
           {null}
           <Input
+            type="url"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
+            inputMode="url"
             placeholder="e.g. https://www.goodreads.com/user/show/42944663-ben-wallace or 42944663"
             value={rawUser}
             onChange={(e) => setRawUser(e.target.value)}
@@ -248,6 +268,11 @@ export default function Page() {
               <div className="flex items-center justify-center text-sm text-gray-600 md:hidden">or</div>
               <div className="rounded-md border bg-white px-3 py-2.5 flex flex-col gap-2 min-h-[16rem]">
                 <Input
+                  type="url"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  inputMode="url"
                   placeholder="Paste a Goodreads profile URL or ID"
                   value={secondRaw}
                   onChange={(e) => {

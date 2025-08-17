@@ -44,7 +44,8 @@ export function FriendPicker({
             key={f.id}
             className={cn(
               "group relative flex items-center gap-3 px-3 py-2.5 transition-colors border-t first:border-t-0 cursor-pointer",
-              selectedId === f.id ? "bg-[#6366f1]/10" : "hover:bg-[#6366f1]/5"
+              // Scope hover highlight to devices that actually support hover to avoid iOS double-tap
+              selectedId === f.id ? "bg-[#6366f1]/10" : "[@media(hover:hover)]:hover:bg-[#6366f1]/5"
             )}
             onClick={() => onSelect(f.id)}
             role="button"
@@ -65,16 +66,8 @@ export function FriendPicker({
               )}
             />
             <div
-              className="flex-1 flex items-center gap-3 text-left hover:opacity-95"
+              className="flex-1 flex items-center gap-3 text-left [@media(hover:hover)]:hover:opacity-95"
               title="Select this friend"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onSelect(f.id);
-                }
-              }}
             >
               <Avatar src={f.image_url} alt={f.name} />
               <div className="flex-1 min-w-0">
@@ -88,7 +81,7 @@ export function FriendPicker({
               href={`https://www.goodreads.com/user/show/${f.id}`}
               target="_blank"
               rel="noreferrer"
-              className="text-gray-500 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="text-gray-500 hover:text-gray-700 transition-opacity opacity-100 md:opacity-0 md:[@media(hover:hover)]:group-hover:opacity-100"
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalIcon />
