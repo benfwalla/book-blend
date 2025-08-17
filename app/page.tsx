@@ -120,6 +120,42 @@ export default function Page() {
     } catch {}
   }, []);
 
+  // Paste helpers: extract URL from various clipboard flavors (covers iOS Safari)
+  function extractUrlFromText(text?: string | null): string | null {
+    if (!text) return null;
+    const m = text.match(/\bhttps?:\/\/[^\s<>()]+/i);
+    return m ? m[0] : null;
+  }
+  function extractUrlFromHtml(html?: string | null): string | null {
+    if (!html) return null;
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const a = doc.querySelector("a[href]");
+      if (a?.getAttribute("href")) return a.getAttribute("href");
+      return extractUrlFromText(doc.body?.textContent ?? "");
+    } catch {
+      return null;
+    }
+  }
+  function extractUrlFromUriList(list?: string | null): string | null {
+    if (!list) return null;
+    const line = list.split(/\r?\n/).find((l) => {
+      const t = l.trim();
+      return t && !t.startsWith("#");
+    });
+    return line ?? null;
+  }
+  // Fallback: try to extract a Goodreads numeric user id from arbitrary text
+  function extractGoodreadsId(text?: string | null): string | null {
+    if (!text) return null;
+    // Prefer explicit /user/show/<id>
+    const m = text.match(/\buser\/show\/(\d+)\b/i);
+    if (m && m[1]) return m[1];
+    // Otherwise, grab a standalone number (7-12 digits) which is typical for Goodreads IDs
+    const n = text.match(/\b(\d{5,12})\b/);
+    return n ? n[1] : null;
+  }
+
   return (
     <main className="space-y-8">
       <section className="space-y-3">
@@ -140,17 +176,16 @@ export default function Page() {
             onChange={(e) => setRawUser(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFetchUser()}
             onPaste={(e) => {
-              const text = e.clipboardData.getData("text");
-              const html = e.clipboardData.getData("text/html");
-              // Try HTML first (iOS Safari often pastes rich text with anchor href)
-              let url: string | null = null;
-              if (html) {
-                const hrefMatch = html.match(/href=\"([^\"]*goodreads\.com\/user\/show\/[^\"]*)\"/i);
-                if (hrefMatch && hrefMatch[1]) url = hrefMatch[1];
-              }
-              if (!url && text) {
-                const textMatch = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
-                if (textMatch && textMatch[0]) url = textMatch[0];
+              const dt = e.clipboardData;
+              let url =
+                extractUrlFromUriList(dt.getData("text/uri-list")) ||
+                extractUrlFromHtml(dt.getData("text/html")) ||
+                extractUrlFromText(dt.getData("text"));
+              if (!url) {
+                const id =
+                  extractGoodreadsId(dt.getData("text/html")) ||
+                  extractGoodreadsId(dt.getData("text"));
+                if (id) url = `https://www.goodreads.com/user/show/${id}`;
               }
               if (url) {
                 e.preventDefault();
@@ -220,16 +255,16 @@ export default function Page() {
                     setSecondRaw(e.target.value);
                   }}
                   onPaste={(e) => {
-                    const text = e.clipboardData.getData("text");
-                    const html = e.clipboardData.getData("text/html");
-                    let url: string | null = null;
-                    if (html) {
-                      const hrefMatch = html.match(/href=\"([^\"]*goodreads\.com\/user\/show\/[^\"]*)\"/i);
-                      if (hrefMatch && hrefMatch[1]) url = hrefMatch[1];
-                    }
-                    if (!url && text) {
-                      const textMatch = text.match(/https?:\/\/[^\s]*goodreads\.com\/user\/show\/[^\s]*/i);
-                      if (textMatch && textMatch[0]) url = textMatch[0];
+                    const dt = e.clipboardData;
+                    let url =
+                      extractUrlFromUriList(dt.getData("text/uri-list")) ||
+                      extractUrlFromHtml(dt.getData("text/html")) ||
+                      extractUrlFromText(dt.getData("text"));
+                    if (!url) {
+                      const id =
+                        extractGoodreadsId(dt.getData("text/html")) ||
+                        extractGoodreadsId(dt.getData("text"));
+                      if (id) url = `https://www.goodreads.com/user/show/${id}`;
                     }
                     if (url) {
                       e.preventDefault();
