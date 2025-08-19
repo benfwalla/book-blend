@@ -6,6 +6,21 @@
   --radius: 8px;
 }
 
+/* Font family definitions */
+.font-crimson {
+  font-family: var(--font-crimson-text), serif;
+}
+
+.font-inter {
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* Apply Crimson Text to all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-crimson-text), serif;
+  font-weight: 600;
+}
+
 html, body {
   height: 100%;
 }
@@ -13,6 +28,7 @@ html, body {
 body {
   /* Noise texture background */
   background: url('/img/noise.png') repeat;
+  font-family: var(--font-inter), sans-serif;
 }
 
 /* Floating books animations */

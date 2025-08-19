@@ -1,18 +1,43 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Crimson_Text, Inter } from "next/font/google";
+
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-crimson-text",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "BookBlend",
   description: "Compare Goodreads users and discover overlap",
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico", sizes: "any" },
+      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: "/favicon/apple-touch-icon.png",
+  },
+  manifest: "/favicon/site.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
+      <body className={`min-h-screen antialiased ${inter.variable} ${crimsonText.variable}`}>
         <div className="max-w-3xl mx-auto px-4 py-8">
           <header className="mb-8">
-            <h1 className="text-2xl font-semibold">BookBlend</h1>
+            <img 
+              src="/img/logo-horizontal.svg" 
+              alt="BookBlend" 
+              className="h-12 w-auto mb-2"
+            />
             <p className="text-sm text-gray-600">Like Spotify Blend, but for books.</p>
           </header>
           {children}
