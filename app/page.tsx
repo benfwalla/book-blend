@@ -102,18 +102,10 @@ export default function Page() {
     try {
       const result = await getBlend(userId, secondUserId);
       setBlendResult(result);
-      // persist both ids
+      // persist primary user only
       try {
         localStorage.setItem("bb_last_user_id", userId);
-        localStorage.setItem("bb_last_second_user_id", secondUserId);
-        // also persist display values: what user saw/entered
         localStorage.setItem("bb_last_user_display", rawUser);
-        // prefer manual secondRaw; if none and a friend was selected, store friend's URL
-        if (secondRaw) {
-          localStorage.setItem("bb_last_second_user_display", secondRaw);
-        } else if (selectedFriendId) {
-          localStorage.setItem("bb_last_second_user_display", `https://www.goodreads.com/user/show/${selectedFriendId}`);
-        }
       } catch {}
     } catch (e: any) {
       setError(e?.message ?? "Failed to fetch blend");
@@ -128,10 +120,8 @@ export default function Page() {
     try {
       const display = localStorage.getItem("bb_last_user_display");
       const legacy = localStorage.getItem("bb_last_user_id");
-      const secondDisplay = localStorage.getItem("bb_last_second_user_display");
       if (display) setRawUser(display);
       else if (legacy) setRawUser(legacy);
-      if (secondDisplay) setSecondRaw(secondDisplay);
     } catch {}
   }, []);
 

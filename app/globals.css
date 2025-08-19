@@ -52,6 +52,26 @@
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Souvenir', serif;
   font-weight: 400;
+  color: #111827; /* Very dark gray for maximum contrast */
+}
+
+/* Improve contrast for secondary text - using @layer to override Tailwind */
+@layer utilities {
+  .text-gray-500 {
+    color: #6b7280 !important; /* Darker than default gray-500 */
+  }
+  
+  .text-gray-600 {
+    color: #374151 !important; /* Much darker than default gray-600 */
+  }
+
+  .text-gray-700 {
+    color: #1f2937 !important; /* Much darker than default gray-700 */
+  }
+  
+  .text-gray-800 {
+    color: #111827 !important; /* Ensure hover states are dark enough */
+  }
 }
 
 html, body {
@@ -62,6 +82,7 @@ body {
   /* Noise texture background */
   background: url('/img/noise.png') repeat;
   font-family: var(--font-inter), sans-serif;
+  color: #1f2937; /* Much darker gray for better contrast */
 }
 
 /* Floating books animations */
