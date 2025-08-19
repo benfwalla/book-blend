@@ -6,19 +6,52 @@
   --radius: 8px;
 }
 
+/* Souvenir font face definitions */
+@font-face {
+  font-family: 'Souvenir';
+  src: url('/fonts/souvenir/Souvenir.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Souvenir';
+  src: url('/fonts/souvenir/SouvenirB.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Souvenir';
+  src: url('/fonts/souvenir/SouvenirI.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Souvenir';
+  src: url('/fonts/souvenir/SouvenirBI.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* Font family definitions */
-.font-crimson {
-  font-family: var(--font-crimson-text), serif;
+.font-souvenir {
+  font-family: 'Souvenir', serif;
 }
 
 .font-inter {
   font-family: var(--font-inter), sans-serif;
 }
 
-/* Apply Crimson Text to all headings */
+/* Apply Souvenir to all headings */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-crimson-text), serif;
-  font-weight: 600;
+  font-family: 'Souvenir', serif;
+  font-weight: 400;
 }
 
 html, body {

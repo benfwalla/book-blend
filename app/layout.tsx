@@ -31,8 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`min-h-screen antialiased ${inter.variable} ${crimsonText.variable}`}>
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <header className="mb-8">
+        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 lg:py-12">
+          <header className="mb-6 sm:mb-8 lg:mb-10">
             <img 
               src="/img/logo-horizontal.svg" 
               alt="BookBlend" 
