@@ -11,8 +11,8 @@ html, body {
 }
 
 body {
-  /* Warm parchment background */
-  background: #EFEEE0;
+  /* Noise texture background */
+  background: url('/img/noise.png') repeat;
 }
 
 /* Floating books animations */
