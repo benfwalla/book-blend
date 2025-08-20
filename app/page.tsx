@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -27,6 +28,7 @@ function ExternalIcon({ className }: { className?: string }) {
 }
 
 export default function Page() {
+  const router = useRouter();
   const [rawUser, setRawUser] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserInfo | null>(null);
@@ -38,6 +40,7 @@ export default function Page() {
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [blendLoading, setBlendLoading] = useState(false);
   const [blendResult, setBlendResult] = useState<any | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
 
   // simple toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -101,7 +104,16 @@ export default function Page() {
     setBlendResult(null);
     try {
       const result = await getBlend(userId, secondUserId);
+      
+      // If blend has metadata with blend_id, redirect to dedicated page
+      if (result._meta?.blend_id) {
+        router.push(`/blend/${result._meta.blend_id}`);
+        return;
+      }
+      
+      // Fallback: show result on current page (for legacy blends)
       setBlendResult(result);
+      
       // persist primary user only
       try {
         localStorage.setItem("bb_last_user_id", userId);
@@ -113,7 +125,42 @@ export default function Page() {
     } finally {
       setBlendLoading(false);
     }
-  }, [userId, secondUserId]);
+  }, [userId, secondUserId, router, rawUser, pushToast]);
+
+  const handleCreateShareLink = useCallback(async () => {
+    if (!userId) return;
+    
+    setShareLoading(true);
+    try {
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create share link');
+      }
+      
+      const data = await response.json();
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(data.share_url);
+      pushToast({ 
+        title: "Share link created!", 
+        description: "Link copied to clipboard", 
+        variant: "default" 
+      });
+    } catch (err: any) {
+      pushToast({ 
+        title: "Failed to create share link", 
+        description: String(err.message || "Unknown error"), 
+        variant: "destructive" 
+      });
+    } finally {
+      setShareLoading(false);
+    }
+  }, [userId, pushToast]);
 
   // prefill from localStorage (prefer original display value user typed/pasted)
   useEffect(() => {
@@ -212,20 +259,31 @@ export default function Page() {
           <div className="text-sm text-red-600">{error}</div>
         )}
         {userData && (
-          <div className="rounded-md border p-3 bg-white flex items-center gap-3">
-            <Avatar src={userData.user.image_url} alt={userData.user.name} />
-            <div className="flex-1">
-              <div className="text-sm"><span className="font-medium">{userData.user.name}</span></div>
+          <div className="space-y-3">
+            <div className="rounded-md border p-3 bg-white flex items-center gap-3">
+              <Avatar src={userData.user.image_url} alt={userData.user.name} />
+              <div className="flex-1">
+                <div className="text-sm"><span className="font-medium">{userData.user.name}</span></div>
+              </div>
+              <a
+                href={`https://www.goodreads.com/user/show/${userData.user.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-gray-600 hover:text-gray-800"
+                title="Open on Goodreads"
+              >
+                <ExternalIcon />
+              </a>
             </div>
-            <a
-              href={`https://www.goodreads.com/user/show/${userData.user.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-gray-600 hover:text-gray-800"
-              title="Open on Goodreads"
-            >
-              <ExternalIcon />
-            </a>
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleCreateShareLink} 
+                disabled={shareLoading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {shareLoading ? "Creating..." : "Create Share Link"}
+              </Button>
+            </div>
           </div>
         )}
       </section>

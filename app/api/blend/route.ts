@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveBlend, getLatestBlend } from "@/lib/database";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BOOKBLEND_BASE_URL || "https://book-blend-backend.vercel.app";
 
@@ -7,11 +8,29 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const user_id1 = searchParams.get("user_id1");
     const user_id2 = searchParams.get("user_id2");
+    const force_new = searchParams.get("force_new") === "true";
 
     if (!user_id1 || !user_id2) {
       return NextResponse.json({ error: "user_id1 and user_id2 are required" }, { status: 400 });
     }
 
+    // Check for existing blend (unless force_new is true)
+    if (!force_new) {
+      const existingBlend = await getLatestBlend(user_id1, user_id2);
+      if (existingBlend) {
+        // Return existing blend with metadata
+        return NextResponse.json({
+          ...existingBlend.blend_data,
+          _meta: {
+            blend_id: existingBlend.id,
+            created_at: existingBlend.created_at,
+            is_cached: true
+          }
+        }, { headers: { "Cache-Control": "no-store" } });
+      }
+    }
+
+    // Fetch new blend from upstream API
     const url = new URL("/blend", BASE_URL);
     url.searchParams.set("user_id1", user_id1);
     url.searchParams.set("user_id2", user_id2);
@@ -21,7 +40,19 @@ export async function GET(req: Request) {
 
     try {
       const json = JSON.parse(text);
-      return NextResponse.json(json, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+      
+      // Save blend to database
+      const savedBlend = await saveBlend(user_id1, user_id2, json);
+      
+      // Return blend with metadata
+      return NextResponse.json({
+        ...json,
+        _meta: {
+          blend_id: savedBlend.id,
+          created_at: savedBlend.created_at,
+          is_cached: false
+        }
+      }, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
     } catch {
       return new NextResponse(text, { status: upstream.status, headers: { "Content-Type": upstream.headers.get("content-type") || "text/plain", "Cache-Control": "no-store" } });
     }
