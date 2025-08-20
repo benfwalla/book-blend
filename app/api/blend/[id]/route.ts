@@ -10,6 +10,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const blend = await getBlendById(blendId);
+    
     if (!blend) {
       return NextResponse.json({ error: "Blend not found" }, { status: 404 });
     }

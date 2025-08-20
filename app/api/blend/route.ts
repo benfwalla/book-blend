@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveBlend, getLatestBlend } from "@/lib/database";
+import { saveBlend, getLatestBlend, cacheUser } from "@/lib/database";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BOOKBLEND_BASE_URL || "https://book-blend-backend.vercel.app";
 
@@ -42,17 +42,54 @@ export async function GET(req: Request) {
       const json = JSON.parse(text);
       
       // Save blend to database
-      const savedBlend = await saveBlend(user_id1, user_id2, json);
-      
-      // Return blend with metadata
-      return NextResponse.json({
-        ...json,
-        _meta: {
-          blend_id: savedBlend.id,
-          created_at: savedBlend.created_at,
-          is_cached: false
+      try {
+        // Ensure both users exist in database before saving blend
+        // Extract user data from the blend response
+        const user1Data = json.users?.[user_id1];
+        const user2Data = json.users?.[user_id2];
+        
+        if (user1Data && user2Data) {
+          // Cache both users first
+          await Promise.all([
+            cacheUser({
+              user: {
+                id: user1Data.id,
+                name: user1Data.name,
+                image_url: user1Data.image_url,
+                profile_url: user1Data.profile_url,
+                book_count: user1Data.metrics?.total_book_count?.toString() || "0"
+              },
+              friends: []
+            }),
+            cacheUser({
+              user: {
+                id: user2Data.id,
+                name: user2Data.name,
+                image_url: user2Data.image_url,
+                profile_url: user2Data.profile_url,
+                book_count: user2Data.metrics?.total_book_count?.toString() || "0"
+              },
+              friends: []
+            })
+          ]);
         }
-      }, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+        
+        const savedBlend = await saveBlend(user_id1, user_id2, json);
+        
+        // Return blend with metadata
+        return NextResponse.json({
+          ...json,
+          _meta: {
+            blend_id: savedBlend.id,
+            created_at: savedBlend.created_at,
+            is_cached: false
+          }
+        }, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+      } catch (dbError: any) {
+        // Database save error - blend returned without metadata
+        // Return blend without metadata if database save fails
+        return NextResponse.json(json, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+      }
     } catch {
       return new NextResponse(text, { status: upstream.status, headers: { "Content-Type": upstream.headers.get("content-type") || "text/plain", "Cache-Control": "no-store" } });
     }

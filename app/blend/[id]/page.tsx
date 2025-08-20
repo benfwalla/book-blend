@@ -51,27 +51,35 @@ export default function BlendPage() {
 
         // Fetch user data for display
         if (data._meta) {
-          const [user1Response, user2Response] = await Promise.all([
-            fetch(`/api/user?user_id=${data._meta.user1_id}`),
-            fetch(`/api/user?user_id=${data._meta.user2_id}`)
-          ]);
+          try {
+            const [user1Response, user2Response] = await Promise.all([
+              fetch(`/api/user?user_id=${data._meta.user1_id}`),
+              fetch(`/api/user?user_id=${data._meta.user2_id}`)
+            ]);
 
-          if (user1Response.ok) {
-            const user1Data = await user1Response.json();
-            setUser1({
-              id: user1Data.user.id,
-              name: user1Data.user.name,
-              image_url: user1Data.user.image_url
-            });
-          }
+            if (user1Response.ok) {
+              const user1Data = await user1Response.json();
+              if (user1Data.user) {
+                setUser1({
+                  id: user1Data.user.id,
+                  name: user1Data.user.name,
+                  image_url: user1Data.user.image_url
+                });
+              }
+            }
 
-          if (user2Response.ok) {
-            const user2Data = await user2Response.json();
-            setUser2({
-              id: user2Data.user.id,
-              name: user2Data.user.name,
-              image_url: user2Data.user.image_url
-            });
+            if (user2Response.ok) {
+              const user2Data = await user2Response.json();
+              if (user2Data.user) {
+                setUser2({
+                  id: user2Data.user.id,
+                  name: user2Data.user.name,
+                  image_url: user2Data.user.image_url
+                });
+              }
+            }
+          } catch (userFetchError) {
+            // Don't fail the whole component if user data fails
           }
         }
       } catch (err: any) {
