@@ -17,7 +17,24 @@ export async function GET(req: Request) {
     const url = new URL("/user", BASE_URL);
     url.searchParams.set("user_id", user_id);
 
-    const upstream = await fetch(url.toString(), { cache: "no-store" });
+    const upstream = await fetch(url.toString(), { 
+      cache: "no-store",
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; BookBlend/1.0)',
+        'Accept': 'application/json, text/plain, */*'
+      }
+    });
+    
+    // Debug logging for production issues
+    if (!upstream.ok) {
+      const errorText = await upstream.text();
+      return NextResponse.json({ 
+        error: `Upstream API error: ${upstream.status} ${upstream.statusText}`,
+        details: errorText,
+        url: url.toString()
+      }, { status: 500 });
+    }
+    
     const text = await upstream.text();
 
     try {
