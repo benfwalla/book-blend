@@ -296,10 +296,11 @@ export default function BlendPage() {
                 className="cursor-pointer transition-transform hover:scale-105"
                 onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[0]}`, '_blank')}
               >
-                <Avatar 
+                <img 
                   src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
                   alt={user1Name}
-                  className="w-28 h-28 border-2 border-gray-200 shadow-md"
+                  className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
+                  style={{borderColor: '#DBD5C1'}}
                 />
               </div>
               <p className="mt-2 font-medium text-gray-900">{user1Name}</p>
@@ -312,10 +313,11 @@ export default function BlendPage() {
                 className="cursor-pointer transition-transform hover:scale-105"
                 onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[1]}`, '_blank')}
               >
-                <Avatar 
+                <img 
                   src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
                   alt={user2Name}
-                  className="w-28 h-28 border-2 border-gray-200 shadow-md"
+                  className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
+                  style={{borderColor: '#DBD5C1'}}
                 />
               </div>
               <p className="mt-2 font-medium text-gray-900">{user2Name}</p>
@@ -382,7 +384,7 @@ export default function BlendPage() {
               {blendData.users && Object.values(blendData.users).map((user, index) => (
                 <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border">
                   <div className="flex items-center gap-3 mb-4">
-                    <Avatar src={user.image_url} alt={user.name} className="w-12 h-12" />
+                    <img src={user.image_url} alt={user.name} className="w-12 h-12 rounded-full border-2 object-cover" style={{borderColor: '#DBD5C1'}} />
                     <div>
                       <h3 className="font-semibold text-lg">{user.name}</h3>
                       <p className="text-gray-600 text-sm">{formatReadingStats(user)}</p>
@@ -537,7 +539,7 @@ export default function BlendPage() {
         {blendData.common_books && blendData.common_books.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Books You Both Know</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {blendData.common_books
                 .sort((a, b) => {
                   const aUser1Read = (a.user1_shelves || 'unknown') === 'read';
@@ -597,10 +599,15 @@ export default function BlendPage() {
                         <img 
                           src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
                           alt={user1Name}
-                          className={`w-6 h-6 rounded-full border-2 ${user1Read ? 'border-green-500' : 'border-gray-300 opacity-50'}`}
+                          className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user1Read ? 'border-green-500' : 'opacity-50'}`}
+                          style={!user1Read ? {borderColor: '#DBD5C1'} : {}}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[0]}`, '_blank');
+                          }}
                         />
                         {user1Read && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
                             <span className="text-white text-xs">✓</span>
                           </div>
                         )}
@@ -609,10 +616,15 @@ export default function BlendPage() {
                         <img 
                           src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
                           alt={user2Name}
-                          className={`w-6 h-6 rounded-full border-2 ${user2Read ? 'border-green-500' : 'border-gray-300 opacity-50'}`}
+                          className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user2Read ? 'border-green-500' : 'opacity-50'}`}
+                          style={!user2Read ? {borderColor: '#DBD5C1'} : {}}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[1]}`, '_blank');
+                          }}
                         />
                         {user2Read && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
                             <span className="text-white text-xs">✓</span>
                           </div>
                         )}
