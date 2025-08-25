@@ -576,10 +576,10 @@ export default function BlendPage() {
                         <img 
                           src={book.image} 
                           alt={book.title}
-                          className="w-full h-32 object-contain rounded-sm mb-2 group-hover:opacity-25 transition-opacity duration-200"
+                          className="w-full h-32 object-contain rounded-sm mb-2 group-hover:opacity-15 transition-opacity duration-200"
                         />
                       ) : (
-                        <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center mb-2 group-hover:opacity-25 transition-opacity duration-200">
+                        <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center mb-2 group-hover:opacity-15 transition-opacity duration-200">
                           <span className="text-gray-400 text-xs">📚</span>
                         </div>
                       )}
