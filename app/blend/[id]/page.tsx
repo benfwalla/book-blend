@@ -15,6 +15,74 @@ interface BlendData {
     user2_id: string;
     created_at: string;
   };
+  blend: {
+    score: number;
+    note?: string;
+    preliminary?: boolean;
+  };
+  users: {
+    [key: string]: {
+      id: string;
+      name: string;
+      image_url?: string;
+      metrics?: {
+        read_count?: number;
+        avg_rating?: number;
+        pages_read?: number;
+        total_book_count?: number;
+        dominant_era?: string;
+        oldest_book_details?: {
+          title: string;
+          author: string;
+          year: number;
+          image?: string;
+        };
+        longest_book_details?: {
+          title: string;
+          author: string;
+          pages: number;
+          image?: string;
+        };
+      };
+    };
+  };
+  ai_insights?: {
+    users: {
+      user1: string;
+      user2: string;
+    };
+    reading_style?: {
+      user1_summary: string;
+      user2_summary: string;
+      compatibility_score: number;
+      compatibility_details: string;
+    };
+    genre_insights?: {
+      shared_genres: string[];
+      recommendations: string[];
+    };
+    book_recommendations?: {
+      for_both: string[];
+      for_user1: string[];
+      for_user2: string[];
+    };
+  };
+  common_books?: Array<{
+    title: string;
+    author: string;
+    image?: string;
+    user1_shelves: string;
+    user2_shelves: string;
+    book_id: string;
+    link: string;
+    average_rating: number;
+    publication_year: number;
+  }>;
+  common_authors?: Array<{
+    author: string;
+    user1_books: Array<{ title: string; }>;
+    user2_books: Array<{ title: string; }>;
+  }>;
   [key: string]: any;
 }
 
@@ -29,8 +97,6 @@ export default function BlendPage() {
   const blendId = params.id as string;
   
   const [blendData, setBlendData] = useState<BlendData | null>(null);
-  const [user1, setUser1] = useState<User | null>(null);
-  const [user2, setUser2] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,40 +114,6 @@ export default function BlendPage() {
         
         const data = await response.json();
         setBlendData(data);
-
-        // Fetch user data for display
-        if (data._meta) {
-          try {
-            const [user1Response, user2Response] = await Promise.all([
-              fetch(`/api/user?user_id=${data._meta.user1_id}`),
-              fetch(`/api/user?user_id=${data._meta.user2_id}`)
-            ]);
-
-            if (user1Response.ok) {
-              const user1Data = await user1Response.json();
-              if (user1Data.user) {
-                setUser1({
-                  id: user1Data.user.id,
-                  name: user1Data.user.name,
-                  image_url: user1Data.user.image_url
-                });
-              }
-            }
-
-            if (user2Response.ok) {
-              const user2Data = await user2Response.json();
-              if (user2Data.user) {
-                setUser2({
-                  id: user2Data.user.id,
-                  name: user2Data.user.name,
-                  image_url: user2Data.user.image_url
-                });
-              }
-            }
-          } catch (userFetchError) {
-            // Don't fail the whole component if user data fails
-          }
-        }
       } catch (err: any) {
         setError(err.message || "Failed to load blend");
       } finally {
@@ -118,6 +150,71 @@ export default function BlendPage() {
     // You could add a toast here
   };
 
+  // Helper functions for data processing
+  const getUserNames = () => {
+    if (!blendData?.users) return { user1Name: "User 1", user2Name: "User 2" };
+    
+    const userIds = Object.keys(blendData.users);
+    const user1Name = blendData.users[userIds[0]]?.name || "User 1";
+    const user2Name = blendData.users[userIds[1]]?.name || "User 2";
+    
+    return { user1Name, user2Name };
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-indigo-600";
+    if (score >= 40) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getScoreDescription = (score: number) => {
+    if (score >= 80) return "Incredible match! You two have amazing reading compatibility.";
+    if (score >= 60) return "Great compatibility! You share many reading interests.";
+    if (score >= 40) return "Good potential! Some shared interests with room to explore.";
+    return "Different tastes, but that's what makes recommendations exciting!";
+  };
+
+  const formatReadingStats = (user: any) => {
+    if (!user?.metrics) return "Limited reading data available";
+    
+    const { read_count, pages_read, avg_rating, total_book_count } = user.metrics;
+    
+    const parts = [];
+    if (read_count) parts.push(`${read_count} books read`);
+    if (pages_read) parts.push(`${pages_read.toLocaleString()} pages`);
+    if (avg_rating) parts.push(`${avg_rating.toFixed(1)} avg rating`);
+    
+    return parts.length > 0 ? parts.join(" • ") : "Limited reading data available";
+  };
+
+  const getBookImages = () => {
+    const images: string[] = [];
+    
+    // Get images from common books
+    if (blendData?.common_books) {
+      blendData.common_books.slice(0, 6).forEach(book => {
+        if (book.image && !book.image.includes('nophoto')) {
+          images.push(book.image);
+        }
+      });
+    }
+    
+    // Get images from user's notable books
+    if (blendData?.users) {
+      Object.values(blendData.users).forEach(user => {
+        if (user.metrics?.oldest_book_details?.image && !user.metrics.oldest_book_details.image.includes('nophoto')) {
+          images.push(user.metrics.oldest_book_details.image);
+        }
+        if (user.metrics?.longest_book_details?.image && !user.metrics.longest_book_details.image.includes('nophoto')) {
+          images.push(user.metrics.longest_book_details.image);
+        }
+      });
+    }
+    
+    return [...new Set(images)].slice(0, 8); // Remove duplicates and limit to 8
+  };
+
   if (loading) {
     return (
       <main className="flex items-center justify-center min-h-[400px]">
@@ -148,52 +245,315 @@ export default function BlendPage() {
     );
   }
 
+  const { user1Name, user2Name } = getUserNames();
+  const score = blendData.blend?.score || 0;
+  const isLimitedData = blendData.blend?.note?.includes("Limited data") || blendData.blend?.preliminary;
   const createdDate = new Date(blendData._meta.created_at).toLocaleDateString();
+  const bookImages = getBookImages();
 
   return (
-    <main className="space-y-6">
-      {/* Header with users */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Book Blend Result</h1>
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={copyLink}>
-              Copy Link
-            </Button>
-            <Button onClick={handleReBlend} disabled={loading}>
-              Re-Blend
+    <main className="min-h-screen bg-white">
+      {/* Hero Section - Clean */}
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          {/* User Avatars */}
+          <div className="flex items-center justify-center gap-6 mb-8">
+            <div className="text-center">
+              <Avatar 
+                src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
+                alt={user1Name} 
+                className="w-20 h-20 border-2 border-gray-200 shadow-md"
+              />
+              <p className="mt-2 font-medium text-gray-900">{user1Name}</p>
+            </div>
+            
+            <div className="text-4xl font-light mx-4 text-gray-400">×</div>
+            
+            <div className="text-center">
+              <Avatar 
+                src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
+                alt={user2Name}
+                className="w-20 h-20 border-2 border-gray-200 shadow-md"
+              />
+              <p className="mt-2 font-medium text-gray-900">{user2Name}</p>
+            </div>
+          </div>
+
+          {/* Score Display */}
+          <div className="text-center">
+            <div className={`text-8xl font-bold ${getScoreColor(score)} mb-4`}>
+              {score.toFixed(1)}%
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
+            <p className="text-lg text-gray-600 mb-6">
+              {getScoreDescription(score)}
+            </p>
+            
+            {isLimitedData && (
+              <p className="text-sm text-gray-500 mb-6 bg-gray-50 rounded-full px-4 py-2 inline-block">
+                Based on limited data • Score may improve with more reading history
+              </p>
+            )}
+          </div>
+
+          {/* Share Button - Prominent */}
+          <div className="text-center">
+            <Button 
+              onClick={copyLink}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 text-lg shadow-lg h-auto"
+            >
+              📤 Share Your Blend
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* User avatars and info */}
-        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-3">
-            {user1 && (
-              <div className="flex items-center gap-2">
-                <Avatar src={user1.image_url} alt={user1.name} />
-                <span className="font-medium">{user1.name}</span>
-              </div>
-            )}
-            <span className="text-gray-500">×</span>
-            {user2 && (
-              <div className="flex items-center gap-2">
-                <Avatar src={user2.image_url} alt={user2.name} />
-                <span className="font-medium">{user2.name}</span>
-              </div>
-            )}
+      {/* Content Sections */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Reading Profiles */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Reading Profiles</h2>
+            
+            <div className="space-y-4">
+              {blendData.users && Object.values(blendData.users).map((user, index) => (
+                <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar src={user.image_url} alt={user.name} className="w-12 h-12" />
+                    <div>
+                      <h3 className="font-semibold text-lg">{user.name}</h3>
+                      <p className="text-gray-600 text-sm">{formatReadingStats(user)}</p>
+                    </div>
+                  </div>
+                  
+                  {user.metrics && (
+                    <div className="space-y-3 text-sm">
+                      {user.metrics.dominant_era && (
+                        <p><span className="font-medium">Favorite Era:</span> {user.metrics.dominant_era.replace(/_/g, ' ').replace('present', 'Present')}</p>
+                      )}
+                      
+                      {user.metrics.oldest_book_details && (
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium">Oldest Book:</span>
+                          {user.metrics.oldest_book_details.image && !user.metrics.oldest_book_details.image.includes('nophoto') && (
+                            <img 
+                              src={user.metrics.oldest_book_details.image} 
+                              alt={user.metrics.oldest_book_details.title}
+                              className="w-8 h-10 object-cover rounded shadow"
+                            />
+                          )}
+                          <span>"{user.metrics.oldest_book_details.title}" ({user.metrics.oldest_book_details.year})</span>
+                        </div>
+                      )}
+                      
+                      {user.metrics.longest_book_details && (
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium">Longest Book:</span>
+                          {user.metrics.longest_book_details.image && !user.metrics.longest_book_details.image.includes('nophoto') && (
+                            <img 
+                              src={user.metrics.longest_book_details.image} 
+                              alt={user.metrics.longest_book_details.title}
+                              className="w-8 h-10 object-cover rounded shadow"
+                            />
+                          )}
+                          <span>"{user.metrics.longest_book_details.title}" ({user.metrics.longest_book_details.pages} pages)</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="ml-auto text-sm text-gray-500">
-            Blended on {createdDate}
+
+          {/* Insights & Recommendations */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Your Reading Connection</h2>
+            
+            {/* Compatibility Insights */}
+            {blendData.ai_insights?.reading_style && (
+              <div className="bg-white rounded-lg p-6 shadow-md border">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
+                <p className="text-lg text-gray-600 mb-6">
+                  {getScoreDescription(score)}
+                </p>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <h4 className="font-medium text-indigo-600">{user1Name}'s Style</h4>
+                    <p className="text-sm text-gray-600">{blendData.ai_insights.reading_style.user1_summary}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-purple-600">{user2Name}'s Style</h4>
+                    <p className="text-sm text-gray-600">{blendData.ai_insights.reading_style.user2_summary}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Shared Interests */}
+            {blendData.ai_insights?.genre_insights && (
+              <div className="bg-white rounded-lg p-6 shadow-md border">
+                <h3 className="font-semibold text-lg mb-4">What You Both Love</h3>
+                
+                {blendData.ai_insights.genre_insights.shared_genres.length > 0 ? (
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Shared Genres</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {blendData.ai_insights.genre_insights.shared_genres.map((genre, index) => (
+                        <span key={index} className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 mb-4">
+                    {user1Name} and {user2Name} have different genre preferences, which makes for exciting discovery opportunities!
+                  </p>
+                )}
+                
+                {blendData.ai_insights.genre_insights.recommendations.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Exploration Ideas</h4>
+                    <ul className="space-y-1">
+                      {blendData.ai_insights.genre_insights.recommendations.map((rec, index) => (
+                        <li key={index} className="text-sm text-gray-700">• {rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Book Recommendations */}
+            {blendData.ai_insights?.book_recommendations && (
+              <div className="bg-white rounded-lg p-6 shadow-md border">
+                <h3 className="font-semibold text-lg mb-4">Recommended Reads</h3>
+                
+                {blendData.ai_insights.book_recommendations.for_both.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="font-medium text-green-600 mb-2">Perfect for Both of You</h4>
+                    <ul className="space-y-1">
+                      {blendData.ai_insights.book_recommendations.for_both.map((book, index) => (
+                        <li key={index} className="text-sm text-gray-700">📚 {book}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {blendData.ai_insights.book_recommendations.for_user1.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-indigo-600 mb-2">For {user1Name}</h4>
+                      <ul className="space-y-1">
+                        {blendData.ai_insights.book_recommendations.for_user1.map((book, index) => (
+                          <li key={index} className="text-sm text-gray-700">• {book}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {blendData.ai_insights.book_recommendations.for_user2.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-purple-600 mb-2">For {user2Name}</h4>
+                      <ul className="space-y-1">
+                        {blendData.ai_insights.book_recommendations.for_user2.map((book, index) => (
+                          <li key={index} className="text-sm text-gray-700">• {book}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </section>
 
-      {/* Blend result */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Result</h2>
-        <JsonView data={blendData} />
-      </section>
+        {/* Books You Both Know - Enhanced with Read Status */}
+        {blendData.common_books && blendData.common_books.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Books You Both Know</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {blendData.common_books.slice(0, 12).map((book, index) => {
+                const user1Shelf = book.user1_shelves || 'unknown';
+                const user2Shelf = book.user2_shelves || 'unknown';
+                
+                // Determine the interaction type
+                let statusBadge = '';
+                let statusColor = '';
+                
+                if (user1Shelf === 'read' && user2Shelf === 'read') {
+                  statusBadge = '💬 Can discuss';
+                  statusColor = 'bg-green-100 text-green-800';
+                } else if (user1Shelf === 'read' && user2Shelf === 'to-read') {
+                  statusBadge = `📖 ${user1Name} can recommend`;
+                  statusColor = 'bg-blue-100 text-blue-800';
+                } else if (user1Shelf === 'to-read' && user2Shelf === 'read') {
+                  statusBadge = `📖 ${user2Name} can recommend`;
+                  statusColor = 'bg-blue-100 text-blue-800';
+                } else if (user1Shelf === 'to-read' && user2Shelf === 'to-read') {
+                  statusBadge = '📚 Book club potential';
+                  statusColor = 'bg-purple-100 text-purple-800';
+                } else if (user1Shelf === 'currently-reading' || user2Shelf === 'currently-reading') {
+                  statusBadge = '📖 Currently reading';
+                  statusColor = 'bg-yellow-100 text-yellow-800';
+                } else {
+                  statusBadge = '📖 Shared interest';
+                  statusColor = 'bg-gray-100 text-gray-800';
+                }
+
+                return (
+                  <div key={index} className="bg-white rounded-lg p-3 shadow-md border hover:shadow-lg transition-shadow">
+                    {book.image && !book.image.includes('nophoto') ? (
+                      <img 
+                        src={book.image} 
+                        alt={book.title}
+                        className="w-full h-24 object-cover rounded mb-2"
+                      />
+                    ) : (
+                      <div className="w-full h-24 bg-gray-200 rounded flex items-center justify-center mb-2">
+                        <span className="text-gray-400 text-xs">📚</span>
+                      </div>
+                    )}
+                    <h4 className="font-medium text-xs text-gray-900 mb-1 line-clamp-2">{book.title}</h4>
+                    <p className="text-xs text-gray-600 mb-2">{book.author}</p>
+                    
+                    {/* Status Badge */}
+                    <div className={`text-xs px-2 py-1 rounded-full text-center ${statusColor}`}>
+                      {statusBadge}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+          <Button 
+            onClick={copyLink}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 h-auto"
+          >
+            📤 Share This Blend
+          </Button>
+          <Button 
+            onClick={handleReBlend} 
+            disabled={loading}
+            variant="secondary"
+            className="px-8 py-3 h-auto"
+          >
+            🔄 Re-Blend
+          </Button>
+        </div>
+
+        {/* Metadata */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          Blended on {createdDate}
+        </div>
+      </div>
     </main>
   );
 }
