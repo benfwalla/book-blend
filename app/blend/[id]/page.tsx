@@ -538,7 +538,20 @@ export default function BlendPage() {
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Books You Both Know</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {blendData.common_books.slice(0, 12).map((book, index) => {
+              {blendData.common_books
+                .sort((a, b) => {
+                  const aUser1Read = (a.user1_shelves || 'unknown') === 'read';
+                  const aUser2Read = (a.user2_shelves || 'unknown') === 'read';
+                  const bUser1Read = (b.user1_shelves || 'unknown') === 'read';
+                  const bUser2Read = (b.user2_shelves || 'unknown') === 'read';
+                  
+                  // Priority: both read (3), one read (2), neither read (1)
+                  const aPriority = (aUser1Read && aUser2Read) ? 3 : (aUser1Read || aUser2Read) ? 2 : 1;
+                  const bPriority = (bUser1Read && bUser2Read) ? 3 : (bUser1Read || bUser2Read) ? 2 : 1;
+                  
+                  return bPriority - aPriority; // Sort descending (highest priority first)
+                })
+                .map((book, index) => {
                 const user1Shelf = book.user1_shelves || 'unknown';
                 const user2Shelf = book.user2_shelves || 'unknown';
                 const user1Read = user1Shelf === 'read';
