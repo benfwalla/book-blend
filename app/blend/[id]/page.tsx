@@ -185,13 +185,37 @@ export default function BlendPage() {
 
   // Helper functions for data processing
   const getUserNames = () => {
-    if (!blendData?.users) return { user1Name: "User 1", user2Name: "User 2" };
+    if (!blendData?.users) return { user1Name: "User 1", user2Name: "User 2", user1Id: undefined, user2Id: undefined };
     
-    const userIds = Object.keys(blendData.users);
-    const user1Name = blendData.users[userIds[0]]?.name || "User 1";
-    const user2Name = blendData.users[userIds[1]]?.name || "User 2";
+    // Get user names from ai_insights if available, otherwise fallback to Object.keys() order
+    let user1Name = "User 1";
+    let user2Name = "User 2";
+    let user1Id: string | undefined;
+    let user2Id: string | undefined;
     
-    return { user1Name, user2Name };
+    if (blendData.ai_insights?.users) {
+      // Use ai_insights to determine who is user1 and user2
+      user1Name = blendData.ai_insights.users.user1 || "User 1";
+      user2Name = blendData.ai_insights.users.user2 || "User 2";
+      
+      // Find the corresponding user IDs by matching names
+      for (const [userId, user] of Object.entries(blendData.users)) {
+        if (user.name === user1Name) {
+          user1Id = userId;
+        } else if (user.name === user2Name) {
+          user2Id = userId;
+        }
+      }
+    } else {
+      // Fallback to Object.keys() order
+      const userIds = Object.keys(blendData.users);
+      user1Id = userIds[0];
+      user2Id = userIds[1];
+      user1Name = user1Id ? blendData.users[user1Id]?.name || "User 1" : "User 1";
+      user2Name = user2Id ? blendData.users[user2Id]?.name || "User 2" : "User 2";
+    }
+    
+    return { user1Name, user2Name, user1Id, user2Id };
   };
 
   const getScoreColor = (score: number) => {
@@ -278,7 +302,7 @@ export default function BlendPage() {
     );
   }
 
-  const { user1Name, user2Name } = getUserNames();
+  const { user1Name, user2Name, user1Id, user2Id } = getUserNames();
   const score = blendData.blend?.score || 0;
   const isLimitedData = blendData.blend?.note?.includes("Limited data") || blendData.blend?.preliminary;
   const createdDate = new Date(blendData._meta.created_at).toLocaleDateString();
@@ -294,10 +318,10 @@ export default function BlendPage() {
             <div className="text-center">
               <div 
                 className="cursor-pointer transition-transform hover:scale-105"
-                onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[0]}`, '_blank')}
+                onClick={() => user1Id && window.open(`https://www.goodreads.com/user/show/${user1Id}`, '_blank')}
               >
                 <img 
-                  src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
+                  src={user1Id ? blendData.users?.[user1Id]?.image_url : undefined} 
                   alt={user1Name}
                   className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
                   style={{borderColor: '#DBD5C1'}}
@@ -311,10 +335,10 @@ export default function BlendPage() {
             <div className="text-center">
               <div 
                 className="cursor-pointer transition-transform hover:scale-105"
-                onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[1]}`, '_blank')}
+                onClick={() => user2Id && window.open(`https://www.goodreads.com/user/show/${user2Id}`, '_blank')}
               >
                 <img 
-                  src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
+                  src={user2Id ? blendData.users?.[user2Id]?.image_url : undefined} 
                   alt={user2Name}
                   className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
                   style={{borderColor: '#DBD5C1'}}
@@ -381,7 +405,10 @@ export default function BlendPage() {
             <h2 className="text-2xl font-bold text-gray-900">Reading Profiles</h2>
             
             <div className="space-y-4">
-              {blendData.users && Object.values(blendData.users).map((user, index) => (
+              {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                const user = blendData.users[userId];
+                if (!user) return null;
+                return (
                 <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border">
                   <div className="flex items-center gap-3 mb-4">
                     <img src={user.image_url} alt={user.name} className="w-12 h-12 rounded-full border-2 object-cover" style={{borderColor: '#DBD5C1'}} />
@@ -427,7 +454,8 @@ export default function BlendPage() {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -611,13 +639,13 @@ export default function BlendPage() {
                     <div className="flex justify-center items-center gap-1">
                       <div className="relative">
                         <img 
-                          src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
+                          src={user1Id ? blendData.users?.[user1Id]?.image_url : undefined} 
                           alt={user1Name}
                           className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user1Read ? 'border-green-500' : 'opacity-50'}`}
                           style={!user1Read ? {borderColor: '#DBD5C1'} : {}}
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[0]}`, '_blank');
+                            if (user1Id) window.open(`https://www.goodreads.com/user/show/${user1Id}`, '_blank');
                           }}
                         />
                         {user1Read && (
@@ -628,13 +656,13 @@ export default function BlendPage() {
                       </div>
                       <div className="relative">
                         <img 
-                          src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
+                          src={user2Id ? blendData.users?.[user2Id]?.image_url : undefined} 
                           alt={user2Name}
                           className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user2Read ? 'border-green-500' : 'opacity-50'}`}
                           style={!user2Read ? {borderColor: '#DBD5C1'} : {}}
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[1]}`, '_blank');
+                            if (user2Id) window.open(`https://www.goodreads.com/user/show/${user2Id}`, '_blank');
                           }}
                         />
                         {user2Read && (
