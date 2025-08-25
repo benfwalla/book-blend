@@ -145,10 +145,43 @@ export default function BlendPage() {
     }
   };
 
+  const [copied, setCopied] = useState(false);
+  const [animatedScore, setAnimatedScore] = useState(0);
+
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    // You could add a toast here
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
+
+  // Animate score counter on load
+  useEffect(() => {
+    if (!blendData?.blend?.score) return;
+    
+    const targetScore = blendData.blend.score;
+    const startScore = Math.max(0, targetScore - 20); // Start 20 points below target
+    const duration = 900;
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth deceleration
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const currentScore = startScore + (targetScore - startScore) * easeOut;
+      
+      setAnimatedScore(currentScore);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    // Set initial score and start animation
+    setAnimatedScore(startScore);
+    requestAnimationFrame(animate);
+  }, [blendData?.blend?.score]);
 
   // Helper functions for data processing
   const getUserNames = () => {
@@ -257,32 +290,42 @@ export default function BlendPage() {
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-6 py-12">
           {/* User Avatars */}
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-8 mb-8">
             <div className="text-center">
-              <Avatar 
-                src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
-                alt={user1Name} 
-                className="w-20 h-20 border-2 border-gray-200 shadow-md"
-              />
+              <div 
+                className="cursor-pointer transition-transform hover:scale-105"
+                onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[0]}`, '_blank')}
+              >
+                <Avatar 
+                  src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
+                  alt={user1Name}
+                  className="w-28 h-28 border-2 border-gray-200 shadow-md"
+                />
+              </div>
               <p className="mt-2 font-medium text-gray-900">{user1Name}</p>
             </div>
             
-            <div className="text-4xl font-light mx-4 text-gray-400">×</div>
+            <div className="text-4xl text-gray-400 font-light">×</div>
             
             <div className="text-center">
-              <Avatar 
-                src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
-                alt={user2Name}
-                className="w-20 h-20 border-2 border-gray-200 shadow-md"
-              />
+              <div 
+                className="cursor-pointer transition-transform hover:scale-105"
+                onClick={() => window.open(`https://www.goodreads.com/user/show/${Object.keys(blendData.users)[1]}`, '_blank')}
+              >
+                <Avatar 
+                  src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
+                  alt={user2Name}
+                  className="w-28 h-28 border-2 border-gray-200 shadow-md"
+                />
+              </div>
               <p className="mt-2 font-medium text-gray-900">{user2Name}</p>
             </div>
           </div>
 
           {/* Score Display */}
           <div className="text-center">
-            <div className={`text-8xl font-bold ${getScoreColor(score)} mb-4`}>
-              {score.toFixed(1)}%
+            <div className={`text-8xl font-bold font-souvenir ${getScoreColor(score)} mb-4`}>
+              {animatedScore.toFixed(1)}%
             </div>
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
             <p className="text-lg text-gray-600 mb-6">
@@ -297,13 +340,32 @@ export default function BlendPage() {
           </div>
 
           {/* Share Button - Prominent */}
-          <div className="text-center">
-            <Button 
-              onClick={copyLink}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 text-lg shadow-lg h-auto"
-            >
-              📤 Share Your Blend
-            </Button>
+          <div className="border border-gray-200 rounded-lg p-3 max-w-lg mx-auto bg-white">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 mb-1">Share this blend</p>
+                <p className="text-sm font-mono text-gray-700 truncate">{window.location.href}</p>
+              </div>
+              <button
+                onClick={copyLink}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 ${
+                  copied 
+                    ? 'bg-green-50 text-green-700 border-green-200' 
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                {copied ? (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Copied!
+                  </span>
+                ) : (
+                  'Copy Link'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -340,7 +402,7 @@ export default function BlendPage() {
                             <img 
                               src={user.metrics.oldest_book_details.image} 
                               alt={user.metrics.oldest_book_details.title}
-                              className="w-8 h-10 object-cover rounded shadow"
+                              className="w-8 h-10 object-contain rounded-sm shadow"
                             />
                           )}
                           <span>"{user.metrics.oldest_book_details.title}" ({user.metrics.oldest_book_details.year})</span>
@@ -354,7 +416,7 @@ export default function BlendPage() {
                             <img 
                               src={user.metrics.longest_book_details.image} 
                               alt={user.metrics.longest_book_details.title}
-                              className="w-8 h-10 object-cover rounded shadow"
+                              className="w-8 h-10 object-contain rounded-sm shadow"
                             />
                           )}
                           <span>"{user.metrics.longest_book_details.title}" ({user.metrics.longest_book_details.pages} pages)</span>
@@ -479,50 +541,69 @@ export default function BlendPage() {
               {blendData.common_books.slice(0, 12).map((book, index) => {
                 const user1Shelf = book.user1_shelves || 'unknown';
                 const user2Shelf = book.user2_shelves || 'unknown';
-                
-                // Determine the interaction type
-                let statusBadge = '';
-                let statusColor = '';
-                
-                if (user1Shelf === 'read' && user2Shelf === 'read') {
-                  statusBadge = '💬 Can discuss';
-                  statusColor = 'bg-green-100 text-green-800';
-                } else if (user1Shelf === 'read' && user2Shelf === 'to-read') {
-                  statusBadge = `📖 ${user1Name} can recommend`;
-                  statusColor = 'bg-blue-100 text-blue-800';
-                } else if (user1Shelf === 'to-read' && user2Shelf === 'read') {
-                  statusBadge = `📖 ${user2Name} can recommend`;
-                  statusColor = 'bg-blue-100 text-blue-800';
-                } else if (user1Shelf === 'to-read' && user2Shelf === 'to-read') {
-                  statusBadge = '📚 Book club potential';
-                  statusColor = 'bg-purple-100 text-purple-800';
-                } else if (user1Shelf === 'currently-reading' || user2Shelf === 'currently-reading') {
-                  statusBadge = '📖 Currently reading';
-                  statusColor = 'bg-yellow-100 text-yellow-800';
-                } else {
-                  statusBadge = '📖 Shared interest';
-                  statusColor = 'bg-gray-100 text-gray-800';
-                }
+                const user1Read = user1Shelf === 'read';
+                const user2Read = user2Shelf === 'read';
+
+                const handleBookClick = () => {
+                  if (book.book_id) {
+                    window.open(`https://www.goodreads.com/book/show/${book.book_id}`, '_blank');
+                  }
+                };
 
                 return (
-                  <div key={index} className="bg-white rounded-lg p-3 shadow-md border hover:shadow-lg transition-shadow">
-                    {book.image && !book.image.includes('nophoto') ? (
-                      <img 
-                        src={book.image} 
-                        alt={book.title}
-                        className="w-full h-24 object-cover rounded mb-2"
-                      />
-                    ) : (
-                      <div className="w-full h-24 bg-gray-200 rounded flex items-center justify-center mb-2">
-                        <span className="text-gray-400 text-xs">📚</span>
+                  <div 
+                    key={index} 
+                    className="bg-white rounded-lg p-3 shadow-md border hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                    onClick={handleBookClick}
+                  >
+                    <div className="relative overflow-hidden">
+                      {book.image && !book.image.includes('nophoto') ? (
+                        <img 
+                          src={book.image} 
+                          alt={book.title}
+                          className="w-full h-32 object-contain rounded-sm mb-2 group-hover:opacity-25 transition-opacity duration-200"
+                        />
+                      ) : (
+                        <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center mb-2 group-hover:opacity-25 transition-opacity duration-200">
+                          <span className="text-gray-400 text-xs">📚</span>
+                        </div>
+                      )}
+                      
+                      {/* Hover overlay with title and author */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        <div className="text-center px-1 max-w-full">
+                          <h4 className="font-medium text-xs text-gray-900 mb-1 line-clamp-3 break-words">{book.title}</h4>
+                          <p className="text-xs text-gray-600 line-clamp-1 break-words">{book.author}</p>
+                        </div>
                       </div>
-                    )}
-                    <h4 className="font-medium text-xs text-gray-900 mb-1 line-clamp-2">{book.title}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{book.author}</p>
+                    </div>
                     
-                    {/* Status Badge */}
-                    <div className={`text-xs px-2 py-1 rounded-full text-center ${statusColor}`}>
-                      {statusBadge}
+                    {/* Profile Picture Status Indicators */}
+                    <div className="flex justify-center items-center gap-1">
+                      <div className="relative">
+                        <img 
+                          src={blendData.users?.[Object.keys(blendData.users)[0]]?.image_url} 
+                          alt={user1Name}
+                          className={`w-6 h-6 rounded-full border-2 ${user1Read ? 'border-green-500' : 'border-gray-300 opacity-50'}`}
+                        />
+                        {user1Read && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <img 
+                          src={blendData.users?.[Object.keys(blendData.users)[1]]?.image_url} 
+                          alt={user2Name}
+                          className={`w-6 h-6 rounded-full border-2 ${user2Read ? 'border-green-500' : 'border-gray-300 opacity-50'}`}
+                        />
+                        {user2Read && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
