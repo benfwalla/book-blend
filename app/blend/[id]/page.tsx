@@ -557,7 +557,15 @@ export default function BlendPage() {
                   }
                   
                   // Secondary sort by author name (alphabetical)
-                  return (a.author || '').localeCompare(b.author || '');
+                  const authorCompare = (a.author || '').localeCompare(b.author || '');
+                  if (authorCompare !== 0) {
+                    return authorCompare;
+                  }
+                  
+                  // Tertiary sort by book_id (numerical, for series ordering)
+                  const aId = parseInt(a.book_id || '0');
+                  const bId = parseInt(b.book_id || '0');
+                  return aId - bId;
                 })
                 .map((book, index) => {
                 const user1Shelf = book.user1_shelves || 'unknown';
