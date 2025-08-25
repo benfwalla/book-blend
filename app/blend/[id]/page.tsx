@@ -551,7 +551,13 @@ export default function BlendPage() {
                   const aPriority = (aUser1Read && aUser2Read) ? 3 : (aUser1Read || aUser2Read) ? 2 : 1;
                   const bPriority = (bUser1Read && bUser2Read) ? 3 : (bUser1Read || bUser2Read) ? 2 : 1;
                   
-                  return bPriority - aPriority; // Sort descending (highest priority first)
+                  // Primary sort by reading status priority
+                  if (bPriority !== aPriority) {
+                    return bPriority - aPriority;
+                  }
+                  
+                  // Secondary sort by author name (alphabetical)
+                  return (a.author || '').localeCompare(b.author || '');
                 })
                 .map((book, index) => {
                 const user1Shelf = book.user1_shelves || 'unknown';
