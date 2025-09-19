@@ -103,9 +103,22 @@ export async function GET(req: Request) {
           }
         }, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
       } catch (dbError: any) {
-        // Database save error - blend returned without metadata
-        // Return blend without metadata if database save fails
-        return NextResponse.json(json, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+        // Database save error - log the specific error for debugging
+        console.error('Database save failed:', {
+          error: dbError.message,
+          code: dbError.code,
+          details: dbError.details,
+          hint: dbError.hint,
+          user1Id: user_id1,
+          user2Id: user_id2
+        });
+        
+        // Return an error response instead of silently falling back
+        return NextResponse.json({ 
+          error: "Failed to save blend to database", 
+          details: dbError.message,
+          blend_data: json // Include the blend data for debugging
+        }, { status: 500 });
       }
     } catch {
       return new NextResponse(text, { status: upstream.status, headers: { "Content-Type": upstream.headers.get("content-type") || "text/plain", "Cache-Control": "no-store" } });

@@ -101,18 +101,22 @@ export default function Page() {
     if (!userId || !secondUserId) return;
     setError(null);
     setBlendLoading(true);
-    setBlendResult(null);
     try {
       const result = await getBlend(userId, secondUserId);
       
-      // If blend has metadata with blend_id, redirect to dedicated page
-      if (result._meta?.blend_id) {
-        router.push(`/blend/${result._meta.blend_id}`);
-        return;
+      // Check if there was a database error
+      if (result.error) {
+        throw new Error(`Database error: ${result.error}${result.details ? ` - ${result.details}` : ''}`);
       }
       
-      // Fallback: show result on current page (for legacy blends)
-      setBlendResult(result);
+      // Always redirect to dedicated page - create one if blend_id doesn't exist
+      if (result._meta?.blend_id) {
+        router.push(`/blend/${result._meta.blend_id}`);
+      } else {
+        // For legacy blends without blend_id, we'll need to handle this case
+        // For now, show an error since all new blends should have blend_id
+        throw new Error("Blend created but no ID returned. This indicates a database configuration issue. Please check the server logs.");
+      }
       
       // persist primary user only
       try {
@@ -395,13 +399,6 @@ export default function Page() {
               </Button>
             </div>
           </div>
-        </section>
-      )}
-
-      {blendResult && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">3) Result</h2>
-          <JsonView data={blendResult} />
         </section>
       )}
       <Toaster toasts={toasts} onClose={closeToast} />
