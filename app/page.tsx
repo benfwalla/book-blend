@@ -383,18 +383,18 @@ export default function Page() {
                 <div className="relative inline-block z-10 transition-transform group-hover:-translate-x-1">
                   <Avatar src={userData.user.image_url} alt={userData.user.name} size={36} />
                 </div>
-                <div className="relative inline-block -ml-3 z-0 transition-transform group-hover:translate-x-1">
-                  {selectedFriendId ? (
-                    (() => {
-                      const f = friends.find((x) => x.id === selectedFriendId);
-                      return <Avatar src={f?.image_url} alt={f?.name || "friend"} size={36} />;
-                    })()
-                  ) : secondUserId ? (
-                    <Avatar src={undefined as any} alt="entered user" size={36} />
-                  ) : (
-                    <Avatar src={undefined as any} alt="waiting" size={36} />
-                  )}
-                </div>
+                {(selectedFriendId || secondUserId) && (
+                  <div className="relative inline-block -ml-3 z-0 transition-transform group-hover:translate-x-1">
+                    {selectedFriendId ? (
+                      (() => {
+                        const f = friends.find((x) => x.id === selectedFriendId);
+                        return <Avatar src={f?.image_url} alt={f?.name || "friend"} size={36} />;
+                      })()
+                    ) : (
+                      <Avatar src={undefined as any} alt="entered user" size={36} />
+                    )}
+                  </div>
+                )}
               </div>
               <div className="text-sm text-gray-700 truncate">
                 <span className="font-medium">{userData.user.name}</span>

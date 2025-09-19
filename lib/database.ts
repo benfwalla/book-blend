@@ -42,7 +42,7 @@ export async function cacheUser(userInfo: UserInfo): Promise<User> {
     updated_at: new Date().toISOString()
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('users')
     .upsert(userData, { onConflict: 'id' })
     .select()
@@ -54,7 +54,7 @@ export async function cacheUser(userInfo: UserInfo): Promise<User> {
 
 // Get user from cache (returns null if not found or stale)
 export async function getCachedUser(userId: string): Promise<User | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('users')
     .select('*')
     .eq('id', userId)
@@ -74,7 +74,7 @@ export async function getCachedUser(userId: string): Promise<User | null> {
 
 // Create share link for user
 export async function createShareLink(userId: string): Promise<ShareLink> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('share_links')
     .upsert(
       { user_id: userId },
@@ -89,7 +89,7 @@ export async function createShareLink(userId: string): Promise<ShareLink> {
 
 // Get share link by user ID
 export async function getShareLink(userId: string): Promise<ShareLink | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('share_links')
     .select('*')
     .eq('user_id', userId)
@@ -103,7 +103,7 @@ export async function getShareLink(userId: string): Promise<ShareLink | null> {
 export async function saveBlend(user1Id: string, user2Id: string, blendData: any): Promise<Blend> {
   const [orderedId1, orderedId2] = orderUserIds(user1Id, user2Id)
   
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('blends')
     .insert({
       user1_id: orderedId1,
@@ -121,7 +121,7 @@ export async function saveBlend(user1Id: string, user2Id: string, blendData: any
 export async function getLatestBlend(user1Id: string, user2Id: string): Promise<Blend | null> {
   const [orderedId1, orderedId2] = orderUserIds(user1Id, user2Id)
   
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('blends')
     .select('*')
     .eq('user1_id', orderedId1)
@@ -136,7 +136,7 @@ export async function getLatestBlend(user1Id: string, user2Id: string): Promise<
 
 // Get blend by ID
 export async function getBlendById(blendId: string): Promise<Blend | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('blends')
     .select('*')
     .eq('id', blendId)
