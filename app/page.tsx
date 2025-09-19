@@ -84,10 +84,11 @@ export default function Page() {
         return bn - an;
       });
       setFriends(sorted);
-      // persist last used primary user id and what the user actually entered (URL or ID)
+      // persist last used primary user id, display value, and complete user data
       try {
         localStorage.setItem("bb_last_user_id", uid);
         localStorage.setItem("bb_last_user_display", rawUser);
+        localStorage.setItem("bb_last_user_data", JSON.stringify(data));
       } catch {}
     } catch (e: any) {
       setError(e?.message ?? "Failed to load user");
@@ -118,7 +119,7 @@ export default function Page() {
         throw new Error("Blend created but no ID returned. This indicates a database configuration issue. Please check the server logs.");
       }
       
-      // persist primary user only
+      // persist primary user only (user data already saved from handleFetchUser)
       try {
         localStorage.setItem("bb_last_user_id", userId);
         localStorage.setItem("bb_last_user_display", rawUser);
@@ -166,13 +167,33 @@ export default function Page() {
     }
   }, [userId, pushToast]);
 
-  // prefill from localStorage (prefer original display value user typed/pasted)
+  // prefill from localStorage and restore cached user data
   useEffect(() => {
     try {
       const display = localStorage.getItem("bb_last_user_display");
-      const legacy = localStorage.getItem("bb_last_user_id");
+      const savedUserId = localStorage.getItem("bb_last_user_id");
+      const savedUserData = localStorage.getItem("bb_last_user_data");
+      
       if (display) setRawUser(display);
-      else if (legacy) setRawUser(legacy);
+      else if (savedUserId) setRawUser(savedUserId);
+      
+      // Restore cached user data if available
+      if (savedUserId && savedUserData && !userData) {
+        try {
+          const parsedData = JSON.parse(savedUserData);
+          setUserId(savedUserId);
+          setUserData(parsedData);
+          // Sort friends by book_count desc (same as in handleFetchUser)
+          const sorted = (parsedData.friends || []).slice().sort((a: Friend, b: Friend) => {
+            const an = Number(a.book_count || 0);
+            const bn = Number(b.book_count || 0);
+            return bn - an;
+          });
+          setFriends(sorted);
+        } catch {
+          // If parsing fails, ignore cached data
+        }
+      }
     } catch {}
   }, []);
 

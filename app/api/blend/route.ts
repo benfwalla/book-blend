@@ -117,7 +117,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ 
           error: "Failed to save blend to database", 
           details: dbError.message,
-          blend_data: json // Include the blend data for debugging
+          ...(process.env.NODE_ENV === 'development' && { blend_data: json }) // Include blend data only in development
         }, { status: 500 });
       }
     } catch {
