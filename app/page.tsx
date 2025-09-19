@@ -41,6 +41,7 @@ export default function Page() {
   const [blendLoading, setBlendLoading] = useState(false);
   const [blendResult, setBlendResult] = useState<any | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   // simple toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -90,6 +91,9 @@ export default function Page() {
         localStorage.setItem("bb_last_user_display", rawUser);
         localStorage.setItem("bb_last_user_data", JSON.stringify(data));
       } catch {}
+      
+      // Generate share link immediately
+      setShareUrl(`${window.location.origin}/share/${uid}`);
     } catch (e: any) {
       setError(e?.message ?? "Failed to load user");
       pushToast({ title: "Failed to load user", description: String(e?.message ?? "Unknown error"), variant: "destructive" });
@@ -148,12 +152,11 @@ export default function Page() {
       }
       
       const data = await response.json();
+      setShareUrl(data.share_url);
       
-      // Copy to clipboard
-      await navigator.clipboard.writeText(data.share_url);
       pushToast({ 
         title: "Share link created!", 
-        description: "Link copied to clipboard", 
+        description: "You can now copy the link", 
         variant: "default" 
       });
     } catch (err: any) {
@@ -166,6 +169,25 @@ export default function Page() {
       setShareLoading(false);
     }
   }, [userId, pushToast]);
+
+  const handleCopyShareLink = useCallback(async () => {
+    if (!shareUrl) return;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      pushToast({ 
+        title: "Link copied!", 
+        description: "Share link copied to clipboard", 
+        variant: "default" 
+      });
+    } catch (err: any) {
+      pushToast({ 
+        title: "Failed to copy link", 
+        description: String(err.message || "Unknown error"), 
+        variant: "destructive" 
+      });
+    }
+  }, [shareUrl, pushToast]);
 
   // prefill from localStorage and restore cached user data
   useEffect(() => {
@@ -190,6 +212,8 @@ export default function Page() {
             return bn - an;
           });
           setFriends(sorted);
+          // Generate share link immediately for cached data too
+          setShareUrl(`${window.location.origin}/share/${savedUserId}`);
         } catch {
           // If parsing fails, ignore cached data
         }
@@ -285,27 +309,31 @@ export default function Page() {
         )}
         {userData && (
           <div className="space-y-3">
-            <div className="rounded-md border p-3 bg-white flex items-center gap-3">
-              <Avatar src={userData.user.image_url} alt={userData.user.name} />
-              <div className="flex-1">
-                <div className="text-sm"><span className="font-medium">{userData.user.name}</span></div>
+            <div className="rounded-md border p-3 bg-white">
+              <div className="flex items-center gap-3">
+                <Avatar src={userData.user.image_url} alt={userData.user.name} />
+                <div className="flex-1">
+                  <div className="text-sm"><span className="font-medium">{userData.user.name}</span></div>
+                  {shareUrl && (
+                    <p className="text-xs text-gray-500 truncate mt-1">{shareUrl}</p>
+                  )}
+                </div>
+                <a
+                  href={`https://www.goodreads.com/user/show/${userData.user.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-600 hover:text-gray-800"
+                  title="Open on Goodreads"
+                >
+                  <ExternalIcon />
+                </a>
+                <button
+                  onClick={handleCopyShareLink}
+                  className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  Copy Share Link
+                </button>
               </div>
-              <a
-                href={`https://www.goodreads.com/user/show/${userData.user.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-gray-600 hover:text-gray-800"
-                title="Open on Goodreads"
-              >
-                <ExternalIcon />
-              </a>
-              <button
-                onClick={handleCreateShareLink}
-                disabled={shareLoading}
-                className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {shareLoading ? "Creating..." : "Create  Share Link"}
-              </button>
             </div>
           </div>
         )}

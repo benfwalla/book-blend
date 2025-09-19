@@ -566,7 +566,19 @@ export default function BlendPage() {
         {/* Books You Both Know - Enhanced with Read Status */}
         {blendData.common_books && blendData.common_books.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Books You Both Know</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Books You Both Know</h2>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <span>✅</span>
+                  <span>Read</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 rounded-full border-2 opacity-50" style={{borderColor: '#DBD5C1'}}></div>
+                  <span>On shelf (not read)</span>
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {blendData.common_books
                 .sort((a, b) => {
