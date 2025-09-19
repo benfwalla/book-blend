@@ -299,15 +299,13 @@ export default function Page() {
               >
                 <ExternalIcon />
               </a>
-            </div>
-            <div className="flex justify-center">
-              <Button 
-                onClick={handleCreateShareLink} 
+              <button
+                onClick={handleCreateShareLink}
                 disabled={shareLoading}
-                className="bg-green-600 hover:bg-green-700"
+                className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {shareLoading ? "Creating..." : "Create Share Link"}
-              </Button>
+                {shareLoading ? "Creating..." : "Create  Share Link"}
+              </button>
             </div>
           </div>
         )}
