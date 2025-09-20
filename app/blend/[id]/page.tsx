@@ -572,7 +572,7 @@ export default function BlendPage() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-48">
-                        <p>Era with highest % of books read</p>
+                        <p>Era with highest % of books read: Pre-1900, 1900-1950, 1950-1980, 1980-2000, 2000-2010, 2010 to Present</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
