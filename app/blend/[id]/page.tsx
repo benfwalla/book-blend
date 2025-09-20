@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ArrowSquareOut, Link, Check, BookOpen, Clock, Calendar, TrendUp, Star, Info } from "phosphor-react";
 import { useParams } from "next/navigation";
 import { JsonView } from "../../../components/json-view";
 import { Button } from "../../../components/ui/button";
 import { Spinner } from "../../../components/ui/spinner";
 import { Avatar } from "../../../components/ui/avatar";
+import { useEffect, useState } from "react";
 import { getCachedUser } from "../../../lib/database";
 
 interface BlendData {
@@ -60,6 +61,8 @@ interface BlendData {
     genre_insights?: {
       shared_genres: string[];
       recommendations: string[];
+      user1_preferences?: string[];
+      user2_preferences?: string[];
     };
     book_recommendations?: {
       for_both: string[];
@@ -232,6 +235,30 @@ export default function BlendPage() {
     return "Different tastes, but that's what makes recommendations exciting!";
   };
 
+  const formatEra = (era: string) => {
+    switch (era) {
+      case 'pre_1900': return 'Pre-1900';
+      case '1900_1950': return '1900-1950';
+      case '1950_1980': return '1950-1980';
+      case '1980_2000': return '1980-2000';
+      case '2000_2010': return '2000-2010';
+      case '2010_present': return '2010 to Present';
+      default: return era.replace(/_/g, ' ').replace('present', 'Present');
+    }
+  };
+
+  const getDominantEraWithPercentage = (user: any) => {
+    if (!user?.metrics?.dominant_era || !user?.metrics?.era_distribution) {
+      return 'No data';
+    }
+    
+    const era = user.metrics.dominant_era;
+    const percentage = user.metrics.era_distribution[era];
+    const formattedEra = formatEra(era);
+    
+    return `${formattedEra} (${percentage}%)`;
+  };
+
   const formatReadingStats = (user: any) => {
     if (!user?.metrics) return "Limited reading data available";
     
@@ -397,92 +424,246 @@ export default function BlendPage() {
       </div>
 
       {/* Content Sections */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        
+        {/* Reading Profiles */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900">Reading Profiles</h2>
           
-          {/* Reading Profiles */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Reading Profiles</h2>
-            
-            <div className="space-y-4">
-              {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
-                const user = blendData.users[userId];
-                if (!user) return null;
-                return (
-                <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img src={user.image_url} alt={user.name} className="w-12 h-12 rounded-full border-2 object-cover" style={{borderColor: '#DBD5C1'}} />
+          {/* User Headers - Above Table */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div></div>
+            {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+              const user = blendData.users[userId];
+              if (!user) return null;
+              return (
+                <div key={user.id} className="text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-4 shadow-md" style={{borderColor: '#DBD5C1'}}>
+                      <img 
+                        src={user.image_url} 
+                        alt={user.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{user.name}</h3>
-                      <p className="text-gray-600 text-sm">{formatReadingStats(user)}</p>
+                      <h3 className="font-semibold text-xl text-gray-900">{user.name}</h3>
                     </div>
                   </div>
-                  
-                  {user.metrics && (
-                    <div className="space-y-3 text-sm">
-                      {user.metrics.dominant_era && (
-                        <p><span className="font-medium">Favorite Era:</span> {user.metrics.dominant_era.replace(/_/g, ' ').replace('present', 'Present')}</p>
-                      )}
-                      
-                      {user.metrics.oldest_book_details && (
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">Oldest Book:</span>
-                          {user.metrics.oldest_book_details.image && !user.metrics.oldest_book_details.image.includes('nophoto') && (
-                            <img 
-                              src={user.metrics.oldest_book_details.image} 
-                              alt={user.metrics.oldest_book_details.title}
-                              className="w-8 h-10 object-contain rounded-sm shadow"
-                            />
-                          )}
-                          <span>"{user.metrics.oldest_book_details.title}" ({user.metrics.oldest_book_details.year})</span>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+
+            {/* Table Rows */}
+            <div className="divide-y">
+              {/* Books Read */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <BookOpen size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Books Read</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  return (
+                    <div key={`books-${userId}`} className="p-4 border-l">
+                      <span className="text-sm text-gray-600">
+                        {user?.metrics?.read_count || 0} books
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pages Read */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <TrendUp size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Pages Read</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  return (
+                    <div key={`pages-${userId}`} className="p-4 border-l">
+                      <span className="text-sm text-gray-600">
+                        {user?.metrics?.pages_read?.toLocaleString() || 0} pages
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Average Rating */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <Star size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Average Rating</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  return (
+                    <div key={`rating-${userId}`} className="p-4 border-l">
+                      <span className="text-sm text-gray-600">
+                        {user?.metrics?.avg_rating?.toFixed(1) || 'N/A'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Reading Style */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <BookOpen size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Reading Style</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const isUser1 = userId === user1Id;
+                  const readingStyle = isUser1 
+                    ? blendData.ai_insights?.reading_style?.user1_summary 
+                    : blendData.ai_insights?.reading_style?.user2_summary;
+                  return (
+                    <div key={`style-${userId}`} className="p-4 border-l">
+                      <p className="text-sm text-gray-600">{readingStyle || 'No data available'}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Favorite Genres */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <Star size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Favorite Genres</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const isUser1 = userId === user1Id;
+                  const genres = isUser1 
+                    ? blendData.ai_insights?.genre_insights?.user1_preferences 
+                    : blendData.ai_insights?.genre_insights?.user2_preferences;
+                  return (
+                    <div key={`genres-${userId}`} className="p-4 border-l">
+                      {genres && genres.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {genres.map((genre, index) => (
+                            <span 
+                              key={index} 
+                              className={`px-2 py-1 rounded-md text-xs font-medium ${
+                                isUser1 
+                                  ? 'bg-indigo-100 text-indigo-700' 
+                                  : 'bg-purple-100 text-purple-700'
+                              }`}
+                            >
+                              {genre}
+                            </span>
+                          ))}
                         </div>
-                      )}
-                      
-                      {user.metrics.longest_book_details && (
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">Longest Book:</span>
-                          {user.metrics.longest_book_details.image && !user.metrics.longest_book_details.image.includes('nophoto') && (
-                            <img 
-                              src={user.metrics.longest_book_details.image} 
-                              alt={user.metrics.longest_book_details.title}
-                              className="w-8 h-10 object-contain rounded-sm shadow"
-                            />
-                          )}
-                          <span>"{user.metrics.longest_book_details.title}" ({user.metrics.longest_book_details.pages} pages)</span>
-                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">No data</span>
                       )}
                     </div>
-                  )}
+                  );
+                })}
+              </div>
+
+              {/* Favorite Era */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <Calendar size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Favorite Era</span>
+                  <div title="Based on era distribution: Pre-1900, 1900-1950, 1950-1980, 1980-2000, 2000-2010, 2010 to Present">
+                    <Info 
+                      size={14} 
+                      className="text-gray-400 hover:text-gray-600 cursor-help" 
+                    />
+                  </div>
                 </div>
-                );
-              })}
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  return (
+                    <div key={`era-${userId}`} className="p-4 border-l">
+                      <span className="text-sm text-gray-600">
+                        {getDominantEraWithPercentage(user)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Oldest Book */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <Clock size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Oldest Book</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  const book = user?.metrics?.oldest_book_details;
+                  return (
+                    <div key={`oldest-${userId}`} className="p-4 border-l">
+                      {book ? (
+                        <div className="flex items-center gap-2">
+                          {book.image && !book.image.includes('nophoto') && (
+                            <img 
+                              src={book.image} 
+                              alt={book.title}
+                              className="w-5 h-6 object-contain rounded-sm shadow-sm flex-shrink-0"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-gray-900 truncate">{book.title}</p>
+                            <p className="text-xs text-gray-500">{book.year}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">No data</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Longest Book */}
+              <div className="grid grid-cols-3">
+                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
+                  <TrendUp size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-700">Longest Book</span>
+                </div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  const book = user?.metrics?.longest_book_details;
+                  return (
+                    <div key={`longest-${userId}`} className="p-4 border-l">
+                      {book ? (
+                        <div className="flex items-center gap-2">
+                          {book.image && !book.image.includes('nophoto') && (
+                            <img 
+                              src={book.image} 
+                              alt={book.title}
+                              className="w-5 h-6 object-contain rounded-sm shadow-sm flex-shrink-0"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-gray-900 truncate">{book.title}</p>
+                            <p className="text-xs text-gray-500">{book.pages} pages</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">No data</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Insights & Recommendations */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Your Reading Connection</h2>
-            
-            {/* Compatibility Insights */}
-            {blendData.ai_insights?.reading_style && (
-              <div className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
-                <p className="text-lg text-gray-600 mb-6">
-                  {getScoreDescription(score)}
-                </p>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h4 className="font-medium text-indigo-600">{user1Name}'s Style</h4>
-                    <p className="text-sm text-gray-600">{blendData.ai_insights.reading_style.user1_summary}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-purple-600">{user2Name}'s Style</h4>
-                    <p className="text-sm text-gray-600">{blendData.ai_insights.reading_style.user2_summary}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Your Reading Connection */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900">Your Reading Connection</h2>
 
             {/* Shared Interests */}
             {blendData.ai_insights?.genre_insights && (
@@ -560,7 +741,6 @@ export default function BlendPage() {
                 </div>
               </div>
             )}
-          </div>
         </div>
 
         {/* Books You Both Know - Enhanced with Read Status */}
