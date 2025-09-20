@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowSquareOut, Link, Check, BookOpen, Clock, Calendar, TrendUp, Star, Info } from "phosphor-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { useParams } from "next/navigation";
 import { JsonView } from "../../../components/json-view";
 import { Button } from "../../../components/ui/button";
@@ -228,13 +229,6 @@ export default function BlendPage() {
     return "text-red-600";
   };
 
-  const getScoreDescription = (score: number) => {
-    if (score >= 80) return "Incredible match! You two have amazing reading compatibility.";
-    if (score >= 60) return "Great compatibility! You share many reading interests.";
-    if (score >= 40) return "Good potential! Some shared interests with room to explore.";
-    return "Different tastes, but that's what makes recommendations exciting!";
-  };
-
   const formatEra = (era: string) => {
     switch (era) {
       case 'pre_1900': return 'Pre-1900';
@@ -381,9 +375,6 @@ export default function BlendPage() {
               {animatedScore.toFixed(1)}%
             </div>
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
-            <p className="text-lg text-gray-600 mb-6">
-              {getScoreDescription(score)}
-            </p>
             
             {isLimitedData && (
               <p className="text-sm text-gray-500 mb-6 bg-gray-50 rounded-full px-4 py-2 inline-block">
@@ -430,46 +421,46 @@ export default function BlendPage() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900">Reading Profiles</h2>
           
-          {/* User Headers - Above Table */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div></div>
-            {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
-              const user = blendData.users[userId];
-              if (!user) return null;
-              return (
-                <div key={user.id} className="text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-4 shadow-md" style={{borderColor: '#DBD5C1'}}>
-                      <img 
-                        src={user.image_url} 
-                        alt={user.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-xl text-gray-900">{user.name}</h3>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
           <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
 
             {/* Table Rows */}
             <div className="divide-y">
+              {/* User Headers */}
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4"></div>
+                {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
+                  const user = blendData.users[userId];
+                  if (!user) return null;
+                  return (
+                    <div key={user.id} className="p-3 sm:p-4 text-center">
+                      <div className="flex flex-col items-center gap-2 sm:gap-3">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 shadow-md" style={{borderColor: '#DBD5C1'}}>
+                          <img 
+                            src={user.image_url} 
+                            alt={user.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-sm sm:text-xl text-gray-900">{user.name}</h3>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Books Read */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <BookOpen size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Books Read</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <BookOpen size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Books Read</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   return (
-                    <div key={`books-${userId}`} className="p-4 border-l">
-                      <span className="text-sm text-gray-600">
+                    <div key={`books-${userId}`} className="p-3 sm:p-4 border-l">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {user?.metrics?.read_count || 0} books
                       </span>
                     </div>
@@ -478,16 +469,16 @@ export default function BlendPage() {
               </div>
 
               {/* Pages Read */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <TrendUp size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Pages Read</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <TrendUp size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Pages Read</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   return (
-                    <div key={`pages-${userId}`} className="p-4 border-l">
-                      <span className="text-sm text-gray-600">
+                    <div key={`pages-${userId}`} className="p-3 sm:p-4 border-l">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {user?.metrics?.pages_read?.toLocaleString() || 0} pages
                       </span>
                     </div>
@@ -496,16 +487,16 @@ export default function BlendPage() {
               </div>
 
               {/* Average Rating */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <Star size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Average Rating</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <Star size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Avg Rating</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   return (
-                    <div key={`rating-${userId}`} className="p-4 border-l">
-                      <span className="text-sm text-gray-600">
+                    <div key={`rating-${userId}`} className="p-3 sm:p-4 border-l">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {user?.metrics?.avg_rating?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -514,10 +505,10 @@ export default function BlendPage() {
               </div>
 
               {/* Reading Style */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <BookOpen size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Reading Style</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <BookOpen size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Reading Style</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const isUser1 = userId === user1Id;
@@ -525,18 +516,18 @@ export default function BlendPage() {
                     ? blendData.ai_insights?.reading_style?.user1_summary 
                     : blendData.ai_insights?.reading_style?.user2_summary;
                   return (
-                    <div key={`style-${userId}`} className="p-4 border-l">
-                      <p className="text-sm text-gray-600">{readingStyle || 'No data available'}</p>
+                    <div key={`style-${userId}`} className="p-3 sm:p-4 border-l">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{readingStyle || 'No data available'}</p>
                     </div>
                   );
                 })}
               </div>
 
               {/* Favorite Genres */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <Star size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Favorite Genres</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <Star size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Genres</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const isUser1 = userId === user1Id;
@@ -544,13 +535,13 @@ export default function BlendPage() {
                     ? blendData.ai_insights?.genre_insights?.user1_preferences 
                     : blendData.ai_insights?.genre_insights?.user2_preferences;
                   return (
-                    <div key={`genres-${userId}`} className="p-4 border-l">
+                    <div key={`genres-${userId}`} className="p-3 sm:p-4 border-l">
                       {genres && genres.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1.5">
                           {genres.map((genre, index) => (
                             <span 
                               key={index} 
-                              className={`px-2 py-1 rounded-md text-xs font-medium ${
+                              className={`px-2 py-1 rounded text-xs font-medium ${
                                 isUser1 
                                   ? 'bg-indigo-100 text-indigo-700' 
                                   : 'bg-purple-100 text-purple-700'
@@ -561,7 +552,7 @@ export default function BlendPage() {
                           ))}
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">No data</span>
+                        <span className="text-xs sm:text-sm text-gray-400">No data</span>
                       )}
                     </div>
                   );
@@ -569,22 +560,28 @@ export default function BlendPage() {
               </div>
 
               {/* Favorite Era */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <Calendar size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Favorite Era</span>
-                  <div title="Based on era distribution: Pre-1900, 1900-1950, 1950-1980, 1980-2000, 2000-2010, 2010 to Present">
-                    <Info 
-                      size={14} 
-                      className="text-gray-400 hover:text-gray-600 cursor-help" 
-                    />
-                  </div>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <Calendar size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Era</span>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="ml-1">
+                          <Info size={12} className="text-gray-400 hover:text-gray-600 cursor-help" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-48">
+                        <p>Era with highest % of books read</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   return (
-                    <div key={`era-${userId}`} className="p-4 border-l">
-                      <span className="text-sm text-gray-600">
+                    <div key={`era-${userId}`} className="p-3 sm:p-4 border-l">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {getDominantEraWithPercentage(user)}
                       </span>
                     </div>
@@ -593,32 +590,32 @@ export default function BlendPage() {
               </div>
 
               {/* Oldest Book */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <Clock size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Oldest Book</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <Clock size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Oldest</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   const book = user?.metrics?.oldest_book_details;
                   return (
-                    <div key={`oldest-${userId}`} className="p-4 border-l">
+                    <div key={`oldest-${userId}`} className="p-3 sm:p-4 border-l">
                       {book ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-start gap-3">
                           {book.image && !book.image.includes('nophoto') && (
                             <img 
                               src={book.image} 
                               alt={book.title}
-                              className="w-5 h-6 object-contain rounded-sm shadow-sm flex-shrink-0"
+                              className="w-6 h-8 sm:w-8 sm:h-10 object-contain rounded-sm shadow-sm flex-shrink-0"
                             />
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-900 truncate">{book.title}</p>
-                            <p className="text-xs text-gray-500">{book.year}</p>
+                            <p className="text-xs sm:text-sm text-gray-900 leading-tight break-words">{book.title}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{book.year}</p>
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">No data</span>
+                        <span className="text-xs sm:text-sm text-gray-400">No data</span>
                       )}
                     </div>
                   );
@@ -626,32 +623,32 @@ export default function BlendPage() {
               </div>
 
               {/* Longest Book */}
-              <div className="grid grid-cols-3">
-                <div className="p-4 flex items-center gap-3 bg-gray-50/30">
-                  <TrendUp size={16} className="text-gray-500" />
-                  <span className="font-medium text-gray-700">Longest Book</span>
+              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
+                  <TrendUp size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Longest</span>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
                   const book = user?.metrics?.longest_book_details;
                   return (
-                    <div key={`longest-${userId}`} className="p-4 border-l">
+                    <div key={`longest-${userId}`} className="p-3 sm:p-4 border-l">
                       {book ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-start gap-3">
                           {book.image && !book.image.includes('nophoto') && (
                             <img 
                               src={book.image} 
                               alt={book.title}
-                              className="w-5 h-6 object-contain rounded-sm shadow-sm flex-shrink-0"
+                              className="w-6 h-8 sm:w-8 sm:h-10 object-contain rounded-sm shadow-sm flex-shrink-0"
                             />
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-900 truncate">{book.title}</p>
-                            <p className="text-xs text-gray-500">{book.pages} pages</p>
+                            <p className="text-xs sm:text-sm text-gray-900 leading-tight break-words">{book.title}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{book.pages.toLocaleString()} pages</p>
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">No data</span>
+                        <span className="text-xs sm:text-sm text-gray-400">No data</span>
                       )}
                     </div>
                   );
