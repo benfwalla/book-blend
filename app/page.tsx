@@ -2,30 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { FriendPicker } from "@/components/friend-picker";
-import { JsonView } from "@/components/json-view";
-import { getBlend, getUser, type Friend, type UserInfo } from "@/lib/api";
-import { userIdSchema } from "@/lib/goodreads";
-import { Avatar } from "@/components/ui/avatar";
-import { Toaster, type Toast } from "@/components/ui/toast";
-
-function ExternalIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className ?? "h-4 w-4"}
-      aria-hidden="true"
-    >
-      <path d="M14 3h7v7h-2V6.414l-9.293 9.293-1.414-1.414L17.586 5H14V3z" />
-      <path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z" />
-    </svg>
-  );
-}
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Spinner } from "../components/ui/spinner";
+import { FriendPicker } from "../components/friend-picker";
+import { JsonView } from "../components/json-view";
+import { getBlend, getUser, type Friend, type UserInfo } from "../lib/api";
+import { userIdSchema } from "../lib/goodreads";
+import { Avatar } from "../components/ui/avatar";
+import { Toaster, type Toast } from "../components/ui/toast";
+import { ArrowSquareOut, Link, Check } from "phosphor-react";
 
 export default function Page() {
   const router = useRouter();
@@ -42,6 +28,7 @@ export default function Page() {
   const [blendResult, setBlendResult] = useState<any | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // simple toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -172,19 +159,21 @@ export default function Page() {
 
   const handleCopyShareLink = useCallback(async () => {
     if (!shareUrl) return;
-    
+
     try {
       await navigator.clipboard.writeText(shareUrl);
-      pushToast({ 
-        title: "Link copied!", 
-        description: "Share link copied to clipboard", 
-        variant: "default" 
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+      pushToast({
+        title: "Link copied!",
+        description: "Share link copied to clipboard",
+        variant: "default",
       });
     } catch (err: any) {
-      pushToast({ 
-        title: "Failed to copy link", 
-        description: String(err.message || "Unknown error"), 
-        variant: "destructive" 
+      pushToast({
+        title: "Failed to copy link",
+        description: String(err.message || "Unknown error"),
+        variant: "destructive",
       });
     }
   }, [shareUrl, pushToast]);
@@ -313,9 +302,21 @@ export default function Page() {
               <div className="flex items-center gap-3">
                 <Avatar src={userData.user.image_url} alt={userData.user.name} />
                 <div className="flex-1">
-                  <div className="text-sm"><span className="font-medium">{userData.user.name}</span></div>
+                  <div className="text-sm font-medium">{userData.user.name}</div>
                   {shareUrl && (
-                    <p className="text-xs text-gray-500 truncate mt-1">{shareUrl}</p>
+                    <div 
+                      className="flex items-center gap-2 mt-1 cursor-pointer group"
+                      onClick={handleCopyShareLink}
+                    >
+                      <p className="text-xs text-gray-500 truncate group-hover:text-indigo-600 transition-colors">
+                        {shareUrl.replace(/^https?:\/\//, '')}
+                      </p>
+                      {copied ? (
+                        <Check size={14} className="text-green-500 flex-shrink-0" />
+                      ) : (
+                        <Link size={14} className="text-gray-400 group-hover:text-gray-800 transition-colors flex-shrink-0" />
+                      )}
+                    </div>
                   )}
                 </div>
                 <a
@@ -325,14 +326,8 @@ export default function Page() {
                   className="text-gray-600 hover:text-gray-800"
                   title="Open on Goodreads"
                 >
-                  <ExternalIcon />
+                  <ArrowSquareOut size={16} />
                 </a>
-                <button
-                  onClick={handleCopyShareLink}
-                  className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-                >
-                  Copy Share Link
-                </button>
               </div>
             </div>
           </div>

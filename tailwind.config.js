@@ -36,6 +36,10 @@ module.exports = {
           DEFAULT: "#ef4444",
           foreground: "#ffffff"
         },
+        blend: {
+          DEFAULT: "#4F47E6",
+          foreground: "#ffffff"
+        },
       },
       borderRadius: {
         lg: "0.5rem",

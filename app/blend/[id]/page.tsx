@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { JsonView } from "@/components/json-view";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { Avatar } from "@/components/ui/avatar";
-import { getCachedUser } from "@/lib/database";
+import { JsonView } from "../../../components/json-view";
+import { Button } from "../../../components/ui/button";
+import { Spinner } from "../../../components/ui/spinner";
+import { Avatar } from "../../../components/ui/avatar";
+import { getCachedUser } from "../../../lib/database";
 
 interface BlendData {
   _meta: {
@@ -370,14 +370,14 @@ export default function BlendPage() {
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-500 mb-1">Share this blend</p>
-                <p className="text-sm font-mono text-gray-700 truncate">{window.location.href}</p>
+                <p className="text-sm text-gray-700 truncate">{window.location.href}</p>
               </div>
               <button
                 onClick={copyLink}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors duration-200 ${
                   copied 
                     ? 'bg-green-50 text-green-700 border-green-200' 
-                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900'
+                    : 'bg-blend text-blend-foreground border-blend hover:bg-blend/90'
                 }`}
               >
                 {copied ? (
@@ -409,7 +409,7 @@ export default function BlendPage() {
                 const user = blendData.users[userId];
                 if (!user) return null;
                 return (
-                <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border">
+                <div key={user.id} className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
                   <div className="flex items-center gap-3 mb-4">
                     <img src={user.image_url} alt={user.name} className="w-12 h-12 rounded-full border-2 object-cover" style={{borderColor: '#DBD5C1'}} />
                     <div>
@@ -465,7 +465,7 @@ export default function BlendPage() {
             
             {/* Compatibility Insights */}
             {blendData.ai_insights?.reading_style && (
-              <div className="bg-white rounded-lg p-6 shadow-md border">
+              <div className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
                 <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
                 <p className="text-lg text-gray-600 mb-6">
                   {getScoreDescription(score)}
@@ -486,7 +486,7 @@ export default function BlendPage() {
 
             {/* Shared Interests */}
             {blendData.ai_insights?.genre_insights && (
-              <div className="bg-white rounded-lg p-6 shadow-md border">
+              <div className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
                 <h3 className="font-semibold text-lg mb-4">What You Both Love</h3>
                 
                 {blendData.ai_insights.genre_insights.shared_genres.length > 0 ? (
@@ -521,7 +521,7 @@ export default function BlendPage() {
 
             {/* Book Recommendations */}
             {blendData.ai_insights?.book_recommendations && (
-              <div className="bg-white rounded-lg p-6 shadow-md border">
+              <div className="bg-white rounded-lg p-6 shadow-md border rounded-lg">
                 <h3 className="font-semibold text-lg mb-4">Recommended Reads</h3>
                 
                 {blendData.ai_insights.book_recommendations.for_both.length > 0 && (
@@ -695,17 +695,17 @@ export default function BlendPage() {
         <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={copyLink}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 h-auto"
+            className="bg-indigo-500 text-white px-6 py-2 rounded-full shadow-md hover:bg-indigo-600 transition-all duration-200"
           >
-            📤 Share This Blend
+            <span className="mr-2">📤</span> Share This Blend
           </Button>
           <Button 
             onClick={handleReBlend} 
             disabled={loading}
             variant="secondary"
-            className="px-8 py-3 h-auto"
+            className="px-6 py-2 rounded-full shadow-md transition-all duration-200"
           >
-            🔄 Re-Blend
+            <span className="mr-2">🔄</span> Re-Blend
           </Button>
         </div>
 
