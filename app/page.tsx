@@ -253,7 +253,7 @@ export default function Page() {
         <p className="text-sm text-gray-700">
           To find yours, open {" "}
           <a href="https://www.goodreads.com/" target="_blank" rel="noreferrer" className="text-[#6366f1] underline">Goodreads</a>
-          {" →  "}Profile picture{" → "}Profile. Copy the URL.
+          {" →  "}Profile picture{" → "}Profile. Copy the URL (works with both username and full profile URLs).
         </p>
         <div className="flex gap-2 items-end">
           {/* Helper to sanitize Goodreads app share text on paste */}
@@ -266,7 +266,7 @@ export default function Page() {
             autoCapitalize="off"
             autoCorrect="off"
             inputMode="url"
-            placeholder="e.g. https://www.goodreads.com/user/show/42944663-ben-wallace or 42944663"
+            placeholder="e.g. https://www.goodreads.com/user/show/23470"
             value={rawUser}
             onChange={(e) => setRawUser(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFetchUser()}
@@ -367,7 +367,7 @@ export default function Page() {
                   autoCapitalize="off"
                   autoCorrect="off"
                   inputMode="url"
-                  placeholder="Paste a Goodreads profile URL or ID"
+                  placeholder="e.g. https://www.goodreads.com/bewal416 or user ID"
                   value={secondRaw}
                   onChange={(e) => {
                     setSelectedFriendId(null);

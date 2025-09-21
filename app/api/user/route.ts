@@ -15,7 +15,14 @@ export async function GET(req: Request) {
     // Always fetch fresh data from upstream API to get friends list
     // We cache user profile data but always get fresh friends data
     const url = new URL("/user", BASE_URL);
-    url.searchParams.set("user_id", user_id);
+    
+    // Check if this is a username (prefixed with 'username:') or a regular user ID
+    if (user_id.startsWith('username:')) {
+      const username = user_id.replace('username:', '');
+      url.searchParams.set("username", username);
+    } else {
+      url.searchParams.set("user_id", user_id);
+    }
 
     const upstream = await fetch(url.toString(), { 
       cache: "no-store",

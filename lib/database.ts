@@ -7,6 +7,7 @@ export interface User {
   image_url: string | null
   profile_url: string | null
   book_count: number | null
+  username: string | null
   created_at: string
   updated_at: string
 }
@@ -39,6 +40,7 @@ export async function cacheUser(userInfo: UserInfo): Promise<User> {
     image_url: userInfo.user.image_url,
     profile_url: userInfo.user.profile_url,
     book_count: userInfo.user.book_count ? parseInt(userInfo.user.book_count) : null,
+    username: userInfo.user.username || null,
     updated_at: new Date().toISOString()
   }
 

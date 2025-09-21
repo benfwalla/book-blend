@@ -13,6 +13,7 @@ export interface UserInfo {
     image_url: string;
     profile_url: string;
     book_count?: string;
+    username?: string;
   };
   friends: Friend[];
 }
