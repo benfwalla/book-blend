@@ -51,27 +51,18 @@ export default function SharePage() {
         setLoadingShare(true);
         setError(null);
 
-        // First, resolve the slug to get the user ID
+        // Single API call to resolve slug and get user data
         const shareResponse = await fetch(`/api/share/resolve?slug=${shareSlug}`);
         if (!shareResponse.ok) {
           throw new Error("Share link not found");
         }
         
         const shareData = await shareResponse.json();
-        const userId = shareData.user_id;
-        setShareUserId(userId);
-
-        // Then fetch the user data
-        const userResponse = await fetch(`/api/user?user_id=${userId}`);
-        if (!userResponse.ok) {
-          throw new Error("Failed to load user profile");
-        }
-
-        const userData = await userResponse.json();
+        setShareUserId(shareData.user_id);
         setShareUser({
-          id: userData.user.id,
-          name: userData.user.name,
-          image_url: userData.user.image_url
+          id: shareData.user.id,
+          name: shareData.user.name,
+          image_url: shareData.user.image_url
         });
       } catch (err: any) {
         let userFriendlyMessage = "Unable to load share link";

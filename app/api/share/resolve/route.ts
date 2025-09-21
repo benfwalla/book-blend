@@ -15,9 +15,16 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Share link not found" }, { status: 404 });
     }
 
+    // Return all the user data needed for the share page in one call
     return NextResponse.json({
       user_id: user.id,
       slug: user.slug,
+      user: {
+        id: user.id,
+        name: user.name,
+        image_url: user.image_url,
+        profile_url: user.profile_url
+      },
       created_at: user.created_at
     });
   } catch (err: any) {
