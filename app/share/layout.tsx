@@ -9,8 +9,11 @@ interface ShareLayoutProps {
 export async function generateMetadata({ params }: { params: { userId: string } }): Promise<Metadata> {
   const { userId } = params;
   
+  console.log('Share layout generating metadata for:', userId);
+  
   try {
     const user = await getUserBySlug(userId);
+    console.log('Share layout found user:', user ? { id: user.id, name: user.name, slug: user.slug } : 'null');
     
     if (!user) {
       return {
