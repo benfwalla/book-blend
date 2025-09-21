@@ -8,16 +8,11 @@ export interface User {
   profile_url: string | null
   book_count: number | null
   username: string | null
+  slug: string | null
   created_at: string
   updated_at: string
 }
 
-export interface ShareLink {
-  id: string
-  user_id: string
-  created_at: string
-  expires_at: string | null
-}
 
 export interface Blend {
   id: string
@@ -32,8 +27,51 @@ function orderUserIds(id1: string, id2: string): [string, string] {
   return id1 < id2 ? [id1, id2] : [id2, id1]
 }
 
+// Generate a human-readable slug from a name
+function generateSlugFromName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+}
+
+// Find an available slug in users table, adding numeric suffix if needed
+async function findAvailableSlugInUsers(baseSlug: string): Promise<string> {
+  let slug = baseSlug
+  let counter = 0
+  
+  while (true) {
+    const { data } = await supabaseAdmin
+      .from('users')
+      .select('slug')
+      .eq('slug', slug)
+      .single()
+    
+    if (!data) {
+      // Slug is available
+      return slug
+    }
+    
+    // Try next variant
+    counter++
+    slug = `${baseSlug}-${counter}`
+  }
+}
+
 // Cache user data from Goodreads API response
 export async function cacheUser(userInfo: UserInfo): Promise<User> {
+  // Check if user already exists to preserve existing slug
+  const existingUser = await getCachedUser(userInfo.user.id)
+  
+  // Generate slug if user doesn't have one
+  let slug = existingUser?.slug
+  if (!slug) {
+    const baseSlug = generateSlugFromName(userInfo.user.name)
+    slug = await findAvailableSlugInUsers(baseSlug)
+  }
+
   const userData = {
     id: userInfo.user.id,
     name: userInfo.user.name,
@@ -41,6 +79,7 @@ export async function cacheUser(userInfo: UserInfo): Promise<User> {
     profile_url: userInfo.user.profile_url,
     book_count: userInfo.user.book_count ? parseInt(userInfo.user.book_count) : null,
     username: userInfo.user.username || null,
+    slug: slug,
     updated_at: new Date().toISOString()
   }
 
@@ -74,27 +113,12 @@ export async function getCachedUser(userId: string): Promise<User | null> {
   return data
 }
 
-// Create share link for user
-export async function createShareLink(userId: string): Promise<ShareLink> {
+// Get user by slug
+export async function getUserBySlug(slug: string): Promise<User | null> {
   const { data, error } = await supabaseAdmin
-    .from('share_links')
-    .upsert(
-      { user_id: userId },
-      { onConflict: 'user_id' }
-    )
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-// Get share link by user ID
-export async function getShareLink(userId: string): Promise<ShareLink | null> {
-  const { data, error } = await supabaseAdmin
-    .from('share_links')
+    .from('users')
     .select('*')
-    .eq('user_id', userId)
+    .eq('slug', slug)
     .single()
 
   if (error || !data) return null

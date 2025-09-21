@@ -79,8 +79,13 @@ export default function Page() {
         localStorage.setItem("bb_last_user_data", JSON.stringify(data));
       } catch {}
       
-      // Generate share link immediately
-      setShareUrl(`${window.location.origin}/share/${uid}`);
+      // Generate share link using the user's slug if available
+      if (data.user.slug) {
+        setShareUrl(`${window.location.origin}/share/${data.user.slug}`);
+      } else {
+        // Fallback to user ID if no slug yet (shouldn't happen with new system)
+        setShareUrl(`${window.location.origin}/share/${uid}`);
+      }
     } catch (e: any) {
       setError(e?.message ?? "Failed to load user");
       pushToast({ title: "Failed to load user", description: String(e?.message ?? "Unknown error"), variant: "destructive" });
@@ -201,8 +206,12 @@ export default function Page() {
             return bn - an;
           });
           setFriends(sorted);
-          // Generate share link immediately for cached data too
-          setShareUrl(`${window.location.origin}/share/${savedUserId}`);
+          // Generate share link using cached user's slug if available
+          if (parsedData.user.slug) {
+            setShareUrl(`${window.location.origin}/share/${parsedData.user.slug}`);
+          } else {
+            setShareUrl(`${window.location.origin}/share/${savedUserId}`);
+          }
         } catch {
           // If parsing fails, ignore cached data
         }
@@ -367,7 +376,7 @@ export default function Page() {
                   autoCapitalize="off"
                   autoCorrect="off"
                   inputMode="url"
-                  placeholder="e.g. https://www.goodreads.com/bewal416 or user ID"
+                  placeholder="e.g. https://www.goodreads.com/23470 or user ID"
                   value={secondRaw}
                   onChange={(e) => {
                     setSelectedFriendId(null);

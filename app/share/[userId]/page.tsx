@@ -19,9 +19,10 @@ interface ShareUser {
 export default function SharePage() {
   const params = useParams();
   const router = useRouter();
-  const shareUserId = params.userId as string;
+  const shareSlug = params.userId as string; // This is now a slug, not a user ID
   
   const [shareUser, setShareUser] = useState<ShareUser | null>(null);
+  const [shareUserId, setShareUserId] = useState<string | null>(null);
   const [rawUser, setRawUser] = useState("");
   const [loadingShare, setLoadingShare] = useState(true);
   const [loadingBlend, setLoadingBlend] = useState(false);
@@ -50,12 +51,23 @@ export default function SharePage() {
         setLoadingShare(true);
         setError(null);
 
-        const response = await fetch(`/api/user?user_id=${shareUserId}`);
-        if (!response.ok) {
+        // First, resolve the slug to get the user ID
+        const shareResponse = await fetch(`/api/share/resolve?slug=${shareSlug}`);
+        if (!shareResponse.ok) {
+          throw new Error("Share link not found");
+        }
+        
+        const shareData = await shareResponse.json();
+        const userId = shareData.user_id;
+        setShareUserId(userId);
+
+        // Then fetch the user data
+        const userResponse = await fetch(`/api/user?user_id=${userId}`);
+        if (!userResponse.ok) {
           throw new Error("Failed to load user profile");
         }
 
-        const userData = await response.json();
+        const userData = await userResponse.json();
         setShareUser({
           id: userData.user.id,
           name: userData.user.name,
@@ -68,10 +80,10 @@ export default function SharePage() {
       }
     }
 
-    if (shareUserId) {
+    if (shareSlug) {
       fetchShareUser();
     }
-  }, [shareUserId]);
+  }, [shareSlug]);
 
   const handleBlend = useCallback(async () => {
     if (!shareUserId || !secondUserId) return;

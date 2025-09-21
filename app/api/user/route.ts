@@ -47,8 +47,11 @@ export async function GET(req: Request) {
     try {
       const json = JSON.parse(text) as UserInfo;
       
-      // Cache the user data for future requests
-      await cacheUser(json);
+      // Cache the user data for future requests (this will generate/preserve slug)
+      const cachedUser = await cacheUser(json);
+      
+      // Add the slug to the response
+      json.user.slug = cachedUser.slug || undefined;
       
       return NextResponse.json(json, { status: upstream.status, headers: { "Cache-Control": "no-store" } });
     } catch {

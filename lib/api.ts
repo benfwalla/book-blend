@@ -14,6 +14,7 @@ export interface UserInfo {
     profile_url: string;
     book_count?: string;
     username?: string;
+    slug?: string;
   };
   friends: Friend[];
 }
