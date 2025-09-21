@@ -16,7 +16,26 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "BookBlend",
-  description: "Compare Goodreads users and discover overlap",
+  description: "Like Spotiify Blend, but for Goodreads",
+  openGraph: {
+    title: "BookBlend",
+    description: "Like Spotiify Blend, but for Goodreads",
+    images: [
+      {
+        url: "/img/Social.png",
+        width: 1200,
+        height: 630,
+        alt: "BookBlend - Like Spotiify Blend, but for Goodreads",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BookBlend",
+    description: "Like Spotiify Blend, but for Goodreads",
+    images: ["/img/Social.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon/favicon.ico", sizes: "any" },
