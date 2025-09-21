@@ -221,7 +221,7 @@ export default function SharePage() {
             autoCapitalize="off"
             autoCorrect="off"
             inputMode="url"
-            placeholder="e.g. https://www.goodreads.com/user/show/42944663 or 42944663"
+            placeholder="e.g. https://www.goodreads.com/user/show/23470 or 23470"
             value={rawUser}
             onChange={(e) => setRawUser(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && secondUserId && handleBlend()}
