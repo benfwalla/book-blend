@@ -87,8 +87,30 @@ export default function Page() {
         setShareUrl(`${window.location.origin}/share/${uid}`);
       }
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load user");
-      pushToast({ title: "Failed to load user", description: String(e?.message ?? "Unknown error"), variant: "destructive" });
+      // Convert technical errors to user-friendly messages
+      let userFriendlyMessage = "Failed to load user";
+      let toastDescription = "Please check the profile URL and try again";
+      
+      if (e?.message?.includes("500")) {
+        userFriendlyMessage = "User not found";
+        toastDescription = "Can't find Goodreads profile . Please check the URL and try again.";
+      } else if (e?.message?.includes("404")) {
+        userFriendlyMessage = "User not found";
+        toastDescription = "Can't find Goodreads profile. Please check the URL and try again.";
+      } else if (e?.message?.includes("Failed to fetch")) {
+        userFriendlyMessage = "Connection error";
+        toastDescription = "Please check your internet connection and try again.";
+      } else if (e?.message?.includes("timeout")) {
+        userFriendlyMessage = "Request timed out";
+        toastDescription = "The request took too long. Please try again.";
+      }
+      
+      setError(userFriendlyMessage);
+      pushToast({ 
+        title: userFriendlyMessage, 
+        description: toastDescription, 
+        variant: "destructive" 
+      });
     } finally {
       setLoadingUser(false);
     }
@@ -121,8 +143,27 @@ export default function Page() {
         localStorage.setItem("bb_last_user_display", rawUser);
       } catch {}
     } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch blend");
-      pushToast({ title: "Blend failed", description: String(e?.message ?? "Unknown error"), variant: "destructive" });
+      // Convert technical errors to user-friendly messages
+      let userFriendlyMessage = "Blend failed";
+      let toastDescription = "Please try again";
+      
+      if (e?.message?.includes("Database error")) {
+        userFriendlyMessage = "Unable to save blend";
+        toastDescription = "There was an issue saving your blend. Please try again.";
+      } else if (e?.message?.includes("500")) {
+        userFriendlyMessage = "Server error";
+        toastDescription = "Something went wrong on our end. Please try again in a moment.";
+      } else if (e?.message?.includes("Failed to fetch")) {
+        userFriendlyMessage = "Connection error";
+        toastDescription = "Please check your internet connection and try again.";
+      }
+      
+      setError(userFriendlyMessage);
+      pushToast({ 
+        title: userFriendlyMessage, 
+        description: toastDescription, 
+        variant: "destructive" 
+      });
     } finally {
       setBlendLoading(false);
     }
@@ -152,9 +193,17 @@ export default function Page() {
         variant: "default" 
       });
     } catch (err: any) {
+      let toastDescription = "Please try again";
+      
+      if (err?.message?.includes("500")) {
+        toastDescription = "Something went wrong on our end. Please try again in a moment.";
+      } else if (err?.message?.includes("Failed to fetch")) {
+        toastDescription = "Please check your internet connection and try again.";
+      }
+      
       pushToast({ 
-        title: "Failed to create share link", 
-        description: String(err.message || "Unknown error"), 
+        title: "Unable to create share link", 
+        description: toastDescription, 
         variant: "destructive" 
       });
     } finally {

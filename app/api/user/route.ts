@@ -32,14 +32,22 @@ export async function GET(req: Request) {
       }
     });
     
-    // Debug logging for production issues
+    // Handle upstream API errors with user-friendly messages
     if (!upstream.ok) {
       const errorText = await upstream.text();
+      
+      let userMessage = "Unable to load user profile";
+      if (upstream.status === 404) {
+        userMessage = "User not found - please check the profile URL";
+      } else if (upstream.status === 500) {
+        userMessage = "This profile appears to be private or doesn't exist";
+      }
+      
       return NextResponse.json({ 
-        error: `Upstream API error: ${upstream.status} ${upstream.statusText}`,
-        details: errorText,
+        error: userMessage,
+        details: `Status: ${upstream.status}`,
         url: url.toString()
-      }, { status: 500 });
+      }, { status: upstream.status });
     }
     
     const text = await upstream.text();

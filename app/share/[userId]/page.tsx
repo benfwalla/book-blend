@@ -74,7 +74,17 @@ export default function SharePage() {
           image_url: userData.user.image_url
         });
       } catch (err: any) {
-        setError(err.message || "Failed to load share link");
+        let userFriendlyMessage = "Unable to load share link";
+        
+        if (err?.message?.includes("Share link not found")) {
+          userFriendlyMessage = "This share link doesn't exist or has expired";
+        } else if (err?.message?.includes("500")) {
+          userFriendlyMessage = "Something went wrong loading this profile";
+        } else if (err?.message?.includes("Failed to fetch")) {
+          userFriendlyMessage = "Connection error - please check your internet and try again";
+        }
+        
+        setError(userFriendlyMessage);
       } finally {
         setLoadingShare(false);
       }
@@ -110,10 +120,22 @@ export default function SharePage() {
         throw new Error("Blend created but no ID returned");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to create blend");
+      let userFriendlyMessage = "Unable to create blend";
+      let toastDescription = "Please try again";
+      
+      if (err?.message?.includes("Failed to create blend")) {
+        toastDescription = "There was an issue creating your book blend. Please try again.";
+      } else if (err?.message?.includes("500")) {
+        toastDescription = "Something went wrong on our end. Please try again in a moment.";
+      } else if (err?.message?.includes("Failed to fetch")) {
+        userFriendlyMessage = "Connection error";
+        toastDescription = "Please check your internet connection and try again.";
+      }
+      
+      setError(userFriendlyMessage);
       pushToast({ 
-        title: "Blend failed", 
-        description: String(err.message || "Unknown error"), 
+        title: userFriendlyMessage, 
+        description: toastDescription, 
         variant: "destructive" 
       });
     } finally {
