@@ -46,6 +46,33 @@ export async function GET(req: Request) {
     // Debug logging for production issues
     if (!upstream.ok) {
       const errorText = await upstream.text();
+      
+      // Check for specific error cases that we can make more user-friendly
+      let userFriendlyError = null;
+      let errorType = "generic";
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.error === "user_shelves" || errorText.includes("user_shelves")) {
+          userFriendlyError = "One of the users doesn't have any books in their library";
+          errorType = "no_books";
+        }
+      } catch {
+        // If we can't parse as JSON, check the raw text
+        if (errorText.includes("user_shelves")) {
+          userFriendlyError = "One of the users doesn't have any books in their library";
+          errorType = "no_books";
+        }
+      }
+      
+      if (userFriendlyError) {
+        return NextResponse.json({ 
+          error: userFriendlyError,
+          error_type: errorType,
+          user_friendly: true
+        }, { status: 400 }); // Use 400 for user errors instead of 500
+      }
+      
       return NextResponse.json({ 
         error: `Upstream API error: ${upstream.status} ${upstream.statusText}`,
         details: errorText,

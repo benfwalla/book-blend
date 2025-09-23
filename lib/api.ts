@@ -35,6 +35,21 @@ export async function getBlend(userId1: string, userId2: string, signal?: AbortS
   url.searchParams.set("user_id2", userId2);
   const res = await fetch(url.toString(), { cache: "no-store", signal });
   if (!res.ok) {
+    // Try to parse error response for better error messages
+    try {
+      const errorData = await res.json();
+      if (errorData.error && errorData.user_friendly) {
+        // Throw the user-friendly error message directly
+        throw new Error(errorData.error);
+      } else if (errorData.error) {
+        // For non-user-friendly errors, still throw them but mark as technical
+        const error = new Error(errorData.error);
+        (error as any).isTechnical = true;
+        throw error;
+      }
+    } catch (parseError) {
+      // If we can't parse the error response, fall back to status code
+    }
     throw new Error(`Failed to fetch blend: ${res.status}`);
   }
   return res.json();

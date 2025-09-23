@@ -91,9 +91,19 @@ export default function Page() {
       let userFriendlyMessage = "Failed to load user";
       let toastDescription = "Please check the profile URL and try again";
       
+      // Check if this is already a user-friendly error message
+      if (e?.message && !e.message.includes("Failed to fetch user:") && !e.isTechnical) {
+        // If the error message doesn't contain technical jargon, use it directly
+        if (!e.message.match(/\b(500|404|400|401|403)\b/) && !e.message.includes("HTTP")) {
+          userFriendlyMessage = e.message;
+          toastDescription = "Please check the profile URL and try again.";
+        }
+      }
+      
+      // Handle specific error patterns
       if (e?.message?.includes("500")) {
         userFriendlyMessage = "User not found";
-        toastDescription = "Can't find Goodreads profile . Please check the URL and try again.";
+        toastDescription = "Can't find Goodreads profile. Please check the URL and try again.";
       } else if (e?.message?.includes("404")) {
         userFriendlyMessage = "User not found";
         toastDescription = "Can't find Goodreads profile. Please check the URL and try again.";
@@ -147,15 +157,31 @@ export default function Page() {
       let userFriendlyMessage = "Blend failed";
       let toastDescription = "Please try again";
       
+      // Check if this is already a user-friendly error message
+      if (e?.message && !e.message.includes("Failed to fetch blend:") && !e.message.includes("Database error") && !e.isTechnical) {
+        // If the error message doesn't contain technical jargon, use it directly
+        if (!e.message.match(/\b(500|404|400|401|403)\b/) && !e.message.includes("HTTP")) {
+          userFriendlyMessage = e.message;
+          toastDescription = "Please try again or contact support if the issue persists.";
+        }
+      }
+      
+      // Handle specific error patterns
       if (e?.message?.includes("Database error")) {
         userFriendlyMessage = "Unable to save blend";
         toastDescription = "There was an issue saving your blend. Please try again.";
-      } else if (e?.message?.includes("500")) {
-        userFriendlyMessage = "Server error";
-        toastDescription = "Something went wrong on our end. Please try again in a moment.";
+      } else if (e?.message?.includes("500") || e?.message?.includes("Server error")) {
+        userFriendlyMessage = "Something went wrong";
+        toastDescription = "Please try again in a moment.";
+      } else if (e?.message?.includes("400") || e?.message?.includes("Bad request")) {
+        userFriendlyMessage = "Invalid request";
+        toastDescription = "Please check your input and try again.";
       } else if (e?.message?.includes("Failed to fetch")) {
         userFriendlyMessage = "Connection error";
         toastDescription = "Please check your internet connection and try again.";
+      } else if (e?.message?.includes("timeout")) {
+        userFriendlyMessage = "Request timed out";
+        toastDescription = "The request took too long. Please try again.";
       }
       
       setError(userFriendlyMessage);
