@@ -160,28 +160,36 @@ export default function Page() {
       // Check if this is already a user-friendly error message
       if (e?.message && !e.message.includes("Failed to fetch blend:") && !e.message.includes("Database error") && !e.isTechnical) {
         // If the error message doesn't contain technical jargon, use it directly
-        if (!e.message.match(/\b(500|404|400|401|403)\b/) && !e.message.includes("HTTP")) {
+        if (!e.message.match(/\b(500|404|401|403)\b/) && !e.message.includes("HTTP")) {
           userFriendlyMessage = e.message;
-          toastDescription = "Please try again or contact support if the issue persists.";
+          // Set specific descriptions for known error types
+          if (e.message.includes("doesn't have any books")) {
+            toastDescription = "Try blending with a different user who has books in their library.";
+          } else {
+            toastDescription = "Please try again or contact support if the issue persists.";
+          }
         }
       }
       
-      // Handle specific error patterns
+      // Handle specific error patterns (but don't override user-friendly messages)
       if (e?.message?.includes("Database error")) {
         userFriendlyMessage = "Unable to save blend";
         toastDescription = "There was an issue saving your blend. Please try again.";
       } else if (e?.message?.includes("500") || e?.message?.includes("Server error")) {
         userFriendlyMessage = "Something went wrong";
         toastDescription = "Please try again in a moment.";
-      } else if (e?.message?.includes("400") || e?.message?.includes("Bad request")) {
-        userFriendlyMessage = "Invalid request";
-        toastDescription = "Please check your input and try again.";
       } else if (e?.message?.includes("Failed to fetch")) {
         userFriendlyMessage = "Connection error";
         toastDescription = "Please check your internet connection and try again.";
       } else if (e?.message?.includes("timeout")) {
         userFriendlyMessage = "Request timed out";
         toastDescription = "The request took too long. Please try again.";
+      }
+      
+      // Only show generic "Invalid request" for actual bad requests that aren't user-friendly
+      if (e?.message?.includes("400") && userFriendlyMessage === "Blend failed") {
+        userFriendlyMessage = "Invalid request";
+        toastDescription = "Please check your input and try again.";
       }
       
       setError(userFriendlyMessage);
@@ -377,9 +385,6 @@ export default function Page() {
         {loadingUser && (
           <div className="pt-1"><Spinner label="Fetching user & friends..." /></div>
         )}
-        {error && (
-          <div className="text-sm text-red-600">{error}</div>
-        )}
         {userData && (
           <div className="space-y-3">
             <div className="rounded-md border p-3 bg-white">
@@ -513,16 +518,21 @@ export default function Page() {
                 ) : null}
               </div>
             </div>
-            <div className="flex items-center gap-2 md:ml-auto">
-              {blendLoading && (
-                <div className="hidden md:flex items-center">
-                  <span className="mr-2 inline-block h-4 w-4 rounded-full border-2 border-[#6366f1]/60 border-t-transparent animate-spin" />
-                  <span className="sr-only">Blending…</span>
-                </div>
+            <div className="flex flex-col gap-2 md:ml-auto">
+              <div className="flex items-center gap-2 justify-end">
+                {blendLoading && (
+                  <div className="hidden md:flex items-center">
+                    <span className="mr-2 inline-block h-4 w-4 rounded-full border-2 border-[#6366f1]/60 border-t-transparent animate-spin" />
+                    <span className="sr-only">Blending…</span>
+                  </div>
+                )}
+                <Button onClick={handleBlend} disabled={!secondUserId || blendLoading} className="md:w-auto w-full py-3 text-base">
+                  {blendLoading ? "Blending…" : "Blend"}
+                </Button>
+              </div>
+              {error && (
+                <div className="text-sm text-red-600 text-right">{error}</div>
               )}
-              <Button onClick={handleBlend} disabled={!secondUserId || blendLoading} className="md:w-auto w-full py-3 text-base">
-                {blendLoading ? "Blending…" : "Blend"}
-              </Button>
             </div>
           </div>
         </section>
