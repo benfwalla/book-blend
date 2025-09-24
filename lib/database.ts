@@ -62,11 +62,15 @@ async function findAvailableSlugInUsers(baseSlug: string): Promise<string> {
 
 // Cache user data from Goodreads API response
 export async function cacheUser(userInfo: UserInfo): Promise<User> {
-  // Check if user already exists to preserve existing slug
-  const existingUser = await getCachedUser(userInfo.user.id)
-  
+  // Check if user already exists to preserve existing slug, bypassing the staleness check
+  const { data: userForSlug } = await supabaseAdmin
+    .from('users')
+    .select('slug')
+    .eq('id', userInfo.user.id)
+    .single()
+
   // Generate slug if user doesn't have one
-  let slug = existingUser?.slug
+  let slug = userForSlug?.slug
   if (!slug) {
     const baseSlug = generateSlugFromName(userInfo.user.name)
     slug = await findAvailableSlugInUsers(baseSlug)
