@@ -376,6 +376,57 @@ export default function BlendPage() {
             </div>
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Reading Compatibility</h1>
             
+            {/* Score Explanation */}
+            <div className="mb-4">
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-sm text-indigo-600 hover:text-indigo-800 underline decoration-dotted">
+                      How is this calculated?
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs p-4 bg-white border border-gray-200 shadow-lg text-gray-900">
+                    <div className="space-y-3 text-left">
+                      <h4 className="font-semibold text-sm text-indigo-700">Score Breakdown</h4>
+                      <div className="text-xs text-gray-700 leading-relaxed">
+                        Your blend score (0-100) is calculated based on the following components and weights from your "read" shelves on Goodreads:
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between items-center">
+                          <span>Shared books</span>
+                          <span className="font-medium text-indigo-600">30%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Shared authors</span>
+                          <span className="font-medium text-indigo-600">25%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Shared genres</span>
+                          <span className="font-medium text-indigo-600">20%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Era preferences</span>
+                          <span className="font-medium text-indigo-600">10%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Book length</span>
+                          <span className="font-medium text-indigo-600">8%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Rating style</span>
+                          <span className="font-medium text-indigo-600">5%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Publication year</span>
+                          <span className="font-medium text-indigo-600">2%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
             {isLimitedData && (
               <p className="text-sm text-gray-500 mb-6 bg-gray-50 rounded-full px-4 py-2 inline-block">
                 Based on limited data • Score may improve with more reading history
