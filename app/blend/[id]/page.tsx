@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowSquareOut, Link, Check, BookOpen, Clock, Calendar, TrendUp, Star, Info } from "phosphor-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { useParams } from "next/navigation";
 import { JsonView } from "../../../components/json-view";
 import { Button } from "../../../components/ui/button";
@@ -151,6 +150,7 @@ export default function BlendPage() {
 
   const [copied, setCopied] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
+  const [showScoreModal, setShowScoreModal] = useState(false);
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -378,53 +378,12 @@ export default function BlendPage() {
             
             {/* Score Explanation */}
             <div className="mb-4">
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="text-sm text-indigo-600 hover:text-indigo-800 underline decoration-dotted">
-                      How is this calculated?
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs p-4 bg-white border border-gray-200 shadow-lg text-gray-900">
-                    <div className="space-y-3 text-left">
-                      <h4 className="font-semibold text-sm text-indigo-700">Score Breakdown</h4>
-                      <div className="text-xs text-gray-700 leading-relaxed">
-                        Your blend score (0-100) is calculated based on the following components and weights from your "read" shelves on Goodreads:
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between items-center">
-                          <span>Shared books</span>
-                          <span className="font-medium text-indigo-600">30%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Shared authors</span>
-                          <span className="font-medium text-indigo-600">25%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Shared genres</span>
-                          <span className="font-medium text-indigo-600">20%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Era preferences</span>
-                          <span className="font-medium text-indigo-600">10%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Book length</span>
-                          <span className="font-medium text-indigo-600">8%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Rating style</span>
-                          <span className="font-medium text-indigo-600">5%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>Publication year</span>
-                          <span className="font-medium text-indigo-600">2%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <button 
+                onClick={() => setShowScoreModal(true)}
+                className="text-sm text-indigo-600 hover:text-indigo-800 underline decoration-dotted transition-colors"
+              >
+                How is this calculated?
+              </button>
             </div>
             
             {isLimitedData && (
@@ -477,7 +436,7 @@ export default function BlendPage() {
             {/* Table Rows */}
             <div className="divide-y">
               {/* User Headers */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4"></div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
@@ -502,7 +461,7 @@ export default function BlendPage() {
               </div>
 
               {/* Books Read */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <BookOpen size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Books Read</span>
@@ -520,7 +479,7 @@ export default function BlendPage() {
               </div>
 
               {/* Pages Read */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <TrendUp size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Pages Read</span>
@@ -538,7 +497,7 @@ export default function BlendPage() {
               </div>
 
               {/* Average Rating */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <Star size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Avg Rating</span>
@@ -556,7 +515,7 @@ export default function BlendPage() {
               </div>
 
               {/* Reading Style */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <BookOpen size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Reading Style</span>
@@ -575,7 +534,7 @@ export default function BlendPage() {
               </div>
 
               {/* Favorite Genres */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <Star size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Genres</span>
@@ -611,22 +570,13 @@ export default function BlendPage() {
               </div>
 
               {/* Favorite Era */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
-                <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
-                  <Calendar size={14} className="text-gray-500 flex-shrink-0" />
-                  <span className="font-medium text-gray-700 text-xs sm:text-sm">Era</span>
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="ml-1">
-                          <Info size={12} className="text-gray-400 hover:text-gray-600 cursor-help" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-48">
-                        <p>Era with highest % of books read: Pre-1900, 1900-1950, 1950-1980, 1980-2000, 2000-2010, 2010 to Present</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+              <div className="grid grid-cols-[120px_1fr_1fr]">
+                <div className="p-3 sm:p-4 flex items-start gap-2 sm:gap-3 bg-gray-50/30">
+                  <Calendar size={14} className="text-gray-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-gray-700 text-xs sm:text-sm block">Era</span>
+                    <span className="text-xs text-gray-500 leading-tight">Highest % of books read</span>
+                  </div>
                 </div>
                 {blendData.users && user1Id && user2Id && [user1Id, user2Id].map((userId) => {
                   const user = blendData.users[userId];
@@ -641,7 +591,7 @@ export default function BlendPage() {
               </div>
 
               {/* Oldest Book */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <Clock size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Oldest</span>
@@ -674,7 +624,7 @@ export default function BlendPage() {
               </div>
 
               {/* Longest Book */}
-              <div className="grid grid-cols-[0.8fr_2fr_2fr]">
+              <div className="grid grid-cols-[120px_1fr_1fr]">
                 <div className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 bg-gray-50/30">
                   <TrendUp size={14} className="text-gray-500 flex-shrink-0" />
                   <span className="font-medium text-gray-700 text-xs sm:text-sm">Longest</span>
@@ -770,7 +720,7 @@ export default function BlendPage() {
                       <h4 className="font-medium text-indigo-600 mb-2">For {user1Name}</h4>
                       <ul className="space-y-1">
                         {blendData.ai_insights.book_recommendations.for_user1.map((book, index) => (
-                          <li key={index} className="text-sm text-gray-700">• {book}</li>
+                          <li key={index} className="text-sm text-gray-700">📚 {book}</li>
                         ))}
                       </ul>
                     </div>
@@ -781,7 +731,7 @@ export default function BlendPage() {
                       <h4 className="font-medium text-purple-600 mb-2">For {user2Name}</h4>
                       <ul className="space-y-1">
                         {blendData.ai_insights.book_recommendations.for_user2.map((book, index) => (
-                          <li key={index} className="text-sm text-gray-700">• {book}</li>
+                          <li key={index} className="text-sm text-gray-700">📚 {book}</li>
                         ))}
                       </ul>
                     </div>
@@ -794,15 +744,15 @@ export default function BlendPage() {
         {/* Books You Both Know - Enhanced with Read Status */}
         {blendData.common_books && blendData.common_books.length > 0 && (
           <div className="mt-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Books You Both Know</h2>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Books You Both Know</h2>
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <span>✅</span>
                   <span>Read</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 rounded-full border-2 opacity-50" style={{borderColor: '#DBD5C1'}}></div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full border-2 opacity-50 flex-shrink-0" style={{borderColor: '#DBD5C1'}}></div>
                   <span>On shelf (not read)</span>
                 </div>
               </div>
@@ -942,6 +892,70 @@ export default function BlendPage() {
           Blended on {createdDate}
         </div>
       </div>
+
+      {/* Score Calculation Modal */}
+      {showScoreModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setShowScoreModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Score Breakdown</h3>
+                <button 
+                  onClick={() => setShowScoreModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  Your blend score (0-100) is calculated based on the following components and weights from your "read" shelves on Goodreads:
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Shared books</span>
+                    <span className="font-medium text-indigo-600">30%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Shared authors</span>
+                    <span className="font-medium text-indigo-600">25%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Shared genres</span>
+                    <span className="font-medium text-indigo-600">20%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Era preferences</span>
+                    <span className="font-medium text-indigo-600">10%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Book length</span>
+                    <span className="font-medium text-indigo-600">8%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-700">Rating style</span>
+                    <span className="font-medium text-indigo-600">5%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm text-gray-700">Publication year</span>
+                    <span className="font-medium text-indigo-600">2%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
