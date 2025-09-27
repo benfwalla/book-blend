@@ -93,46 +93,14 @@ export default function SharePage() {
     setError(null);
 
     try {
-      // First ensure the second user exists
-      await getUser(secondUserId);
-      
-      // Create the blend
-      const blendResponse = await fetch(`/api/blend?user_id1=${shareUserId}&user_id2=${secondUserId}`);
-      if (!blendResponse.ok) {
-        throw new Error("Failed to create blend");
-      }
-      
-      const blendData = await blendResponse.json();
-      
-      // Redirect to the blend page
-      if (blendData._meta?.blend_id) {
-        router.push(`/blend/${blendData._meta.blend_id}`);
-      } else {
-        throw new Error("Blend created but no ID returned");
-      }
+      // Immediately redirect to blend page with loading state
+      // The blend page will handle the actual API call
+      router.push(`/blend/new?user1=${shareUserId}&user2=${secondUserId}`);
     } catch (err: any) {
-      let userFriendlyMessage = "Unable to create blend";
-      let toastDescription = "Please try again";
-      
-      if (err?.message?.includes("Failed to create blend")) {
-        toastDescription = "There was an issue creating your book blend. Please try again.";
-      } else if (err?.message?.includes("500")) {
-        toastDescription = "Something went wrong on our end. Please try again in a moment.";
-      } else if (err?.message?.includes("Failed to fetch")) {
-        userFriendlyMessage = "Connection error";
-        toastDescription = "Please check your internet connection and try again.";
-      }
-      
-      setError(userFriendlyMessage);
-      pushToast({ 
-        title: userFriendlyMessage, 
-        description: toastDescription, 
-        variant: "destructive" 
-      });
-    } finally {
+      setError("Failed to start blend");
       setLoadingBlend(false);
     }
-  }, [shareUserId, secondUserId, router, pushToast]);
+  }, [shareUserId, secondUserId, router]);
 
   // Paste helpers (same as homepage)
   function extractUrlFromText(text?: string | null): string | null {
@@ -248,7 +216,7 @@ export default function SharePage() {
             disabled={!secondUserId || loadingBlend} 
             className="shrink-0 whitespace-nowrap"
           >
-            {loadingBlend ? "Blending..." : "Blend Books"}
+            {loadingBlend ? "Blending..." : "Blend"}
           </Button>
         </div>
 

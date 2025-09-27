@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@rive-app/react-canvas": "^4.23.4",
     "@supabase/supabase-js": "^2.55.0",
     "clsx": "2.1.1",
     "next": "14.2.5",

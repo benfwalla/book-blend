@@ -1,13 +1,14 @@
 "use client";
 
 import { ArrowSquareOut, Link, Check, BookOpen, Clock, Calendar, TrendUp, Star, Info } from "phosphor-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { JsonView } from "../../../components/json-view";
 import { Button } from "../../../components/ui/button";
 import { Spinner } from "../../../components/ui/spinner";
 import { Avatar } from "../../../components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getCachedUser } from "../../../lib/database";
+import { useRive } from "@rive-app/react-canvas";
 
 interface BlendData {
   _meta: {
@@ -97,6 +98,8 @@ interface User {
 
 export default function BlendPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const blendId = params.id as string;
   
   const [blendData, setBlendData] = useState<BlendData | null>(null);
@@ -109,14 +112,47 @@ export default function BlendPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch blend data
-        const response = await fetch(`/api/blend/${blendId}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch blend: ${response.status}`);
+        // Check if this is a new blend creation
+        if (blendId === 'new') {
+          const user1 = searchParams.get('user1');
+          const user2 = searchParams.get('user2');
+          
+          if (!user1 || !user2) {
+            throw new Error("Missing user parameters for new blend");
+          }
+
+          // Create new blend
+          const response = await fetch(`/api/blend?user_id1=${user1}&user_id2=${user2}`);
+          if (!response.ok) {
+            throw new Error(`Failed to create blend: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Check if there was a database error
+          if (data.error) {
+            throw new Error(`Database error: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
+          }
+          
+          // Set the blend data and redirect
+          if (data._meta?.blend_id) {
+            setBlendData(data);
+            setLoading(false);
+            router.replace(`/blend/${data._meta.blend_id}`);
+            return;
+          } else {
+            throw new Error("Blend created but no ID returned. This indicates a database configuration issue.");
+          }
+        } else if (!blendData) {
+          // Only fetch existing blend data if we don't already have it
+          const response = await fetch(`/api/blend/${blendId}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch blend: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          setBlendData(data);
         }
-        
-        const data = await response.json();
-        setBlendData(data);
       } catch (err: any) {
         setError(err.message || "Failed to load blend");
       } finally {
@@ -124,10 +160,10 @@ export default function BlendPage() {
       }
     }
 
-    if (blendId) {
+    if (blendId && (!blendData || blendId === 'new')) {
       fetchBlend();
     }
-  }, [blendId]);
+  }, [blendId, searchParams, router, blendData]);
 
   const handleReBlend = async () => {
     if (!blendData?._meta) return;
@@ -151,12 +187,38 @@ export default function BlendPage() {
   const [copied, setCopied] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showScoreModal, setShowScoreModal] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Collecting books from Goodreads...");
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Loading message cycling
+  useEffect(() => {
+    if (!loading) return;
+
+    const messages = [
+      "Collecting books from Goodreads...",
+      "Comparing genres and authors...", 
+      "Calculating blend score..."
+    ];
+    
+    let messageIndex = 0;
+    const interval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % messages.length;
+      setLoadingMessage(messages[messageIndex]);
+    }, 4000); // Change message every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  // Rive animation for loading
+  const { RiveComponent } = useRive({
+    src: "/loading_book.riv",
+    autoplay: true,
+  });
 
   // Animate score counter on load
   useEffect(() => {
@@ -295,8 +357,26 @@ export default function BlendPage() {
 
   if (loading) {
     return (
-      <main className="flex items-center justify-center min-h-[400px]">
-        <Spinner label="Loading blend..." />
+      <main className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
+        {/* Rive Animation */}
+        <div className="w-64 h-64 mx-auto">
+          <RiveComponent />
+        </div>
+        
+        {/* Loading Message */}
+        <div className="text-center space-y-3">
+          <h2 className="text-xl font-semibold text-gray-800">Creating Your Blend</h2>
+          <p className="text-sm text-indigo-700 font-medium">
+            {loadingMessage}
+          </p>
+          <div className="flex justify-center">
+            <div className="flex space-x-1">
+              <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full animate-bounce"></div>
+              <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
+        </div>
       </main>
     );
   }

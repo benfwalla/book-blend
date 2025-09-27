@@ -130,75 +130,18 @@ export default function Page() {
     if (!userId || !secondUserId) return;
     setError(null);
     setBlendLoading(true);
+    
+    // Immediately redirect to blend page with loading state
+    // The blend page will handle the actual API call
+    router.push(`/blend/new?user1=${userId}&user2=${secondUserId}`);
+    
+    // persist primary user only (user data already saved from handleFetchUser)
     try {
-      const result = await getBlend(userId, secondUserId);
-      
-      // Check if there was a database error
-      if (result.error) {
-        throw new Error(`Database error: ${result.error}${result.details ? ` - ${result.details}` : ''}`);
-      }
-      
-      // Always redirect to dedicated page - create one if blend_id doesn't exist
-      if (result._meta?.blend_id) {
-        router.push(`/blend/${result._meta.blend_id}`);
-      } else {
-        // For legacy blends without blend_id, we'll need to handle this case
-        // For now, show an error since all new blends should have blend_id
-        throw new Error("Blend created but no ID returned. This indicates a database configuration issue. Please check the server logs.");
-      }
-      
-      // persist primary user only (user data already saved from handleFetchUser)
-      try {
-        localStorage.setItem("bb_last_user_id", userId);
-        localStorage.setItem("bb_last_user_display", rawUser);
-      } catch {}
+      localStorage.setItem("bb_last_user_id", userId);
+      localStorage.setItem("bb_last_user_display", rawUser);
     } catch (e: any) {
-      // Convert technical errors to user-friendly messages
-      let userFriendlyMessage = "Blend failed";
-      let toastDescription = "Please try again";
-      
-      // Check if this is already a user-friendly error message
-      if (e?.message && !e.message.includes("Failed to fetch blend:") && !e.message.includes("Database error") && !e.isTechnical) {
-        // If the error message doesn't contain technical jargon, use it directly
-        if (!e.message.match(/\b(500|404|401|403)\b/) && !e.message.includes("HTTP")) {
-          userFriendlyMessage = e.message;
-          // Set specific descriptions for known error types
-          if (e.message.includes("doesn't have any books")) {
-            toastDescription = "Try blending with a different user who has books in their library.";
-          } else {
-            toastDescription = "Please try again or contact support if the issue persists.";
-          }
-        }
-      }
-      
-      // Handle specific error patterns (but don't override user-friendly messages)
-      if (e?.message?.includes("Database error")) {
-        userFriendlyMessage = "Unable to save blend";
-        toastDescription = "There was an issue saving your blend. Please try again.";
-      } else if (e?.message?.includes("500") || e?.message?.includes("Server error")) {
-        userFriendlyMessage = "Something went wrong";
-        toastDescription = "Please try again in a moment.";
-      } else if (e?.message?.includes("Failed to fetch")) {
-        userFriendlyMessage = "Connection error";
-        toastDescription = "Please check your internet connection and try again.";
-      } else if (e?.message?.includes("timeout")) {
-        userFriendlyMessage = "Request timed out";
-        toastDescription = "The request took too long. Please try again.";
-      }
-      
-      // Only show generic "Invalid request" for actual bad requests that aren't user-friendly
-      if (e?.message?.includes("400") && userFriendlyMessage === "Blend failed") {
-        userFriendlyMessage = "Invalid request";
-        toastDescription = "Please check your input and try again.";
-      }
-      
-      setError(userFriendlyMessage);
-      pushToast({ 
-        title: userFriendlyMessage, 
-        description: toastDescription, 
-        variant: "destructive" 
-      });
-    } finally {
+      // Handle any errors during redirect
+      setError("Failed to start blend");
       setBlendLoading(false);
     }
   }, [userId, secondUserId, router, rawUser, pushToast]);
