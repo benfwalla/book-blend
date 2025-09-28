@@ -49,7 +49,7 @@ export default function InfoButtonModal() {
 
       {open && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-[9999]"
           onClick={close}
           role="dialog"
           aria-modal="true"
@@ -57,7 +57,7 @@ export default function InfoButtonModal() {
         >
           <div
             ref={dialogRef}
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-2xl ring-1 ring-black/10"
+            className="w-full max-w-sm sm:max-w-md rounded-lg bg-white p-4 sm:p-6 shadow-2xl ring-1 ring-black/10 mx-2 sm:mx-0"
             onClick={(e) => e.stopPropagation()}
           >
               <div className="flex justify-end">
@@ -81,26 +81,26 @@ export default function InfoButtonModal() {
                 </button>
               </div>
 
-              <div className="mt-3 space-y-3 text-sm text-gray-700">
-                <p>
+              <div className="mt-3 space-y-3 text-sm sm:text-base text-gray-700 leading-relaxed">
+                <p className="break-words">
                   BookBlend is a personal project by{" "}
                   <a
                     href="https://x.com/DJbennyBuff"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 underline"
+                    className="text-indigo-600 hover:text-indigo-700 underline break-all"
                   >
                     Ben Wallace
                   </a>{" "}
                   and is not affiliated with Goodreads in any way.
                 </p>
-                <p>
+                <p className="break-words">
                   Check out the Githubs to see how it was built:{" "}
                   <a
                     href="https://github.com/benfwalla/book-blend"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 underline"
+                    className="text-indigo-600 hover:text-indigo-700 underline whitespace-nowrap"
                   >
                     Frontend
                   </a>{" "}
@@ -109,19 +109,19 @@ export default function InfoButtonModal() {
                     href="https://github.com/benfwalla/book-blend-backend"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 underline"
+                    className="text-indigo-600 hover:text-indigo-700 underline whitespace-nowrap"
                   >
                     Backend
                   </a>
                   .
                 </p>
-                <p>
+                <p className="break-words">
                   If you're so inclined,{" "}
                   <a
                     href="https://account.venmo.com/u/BenWallace4"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 underline"
+                    className="text-indigo-600 hover:text-indigo-700 underline whitespace-nowrap"
                   >
                     Venmo me
                   </a>{" "}
