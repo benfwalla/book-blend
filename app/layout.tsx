@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Crimson_Text, Inter } from "next/font/google";
-import Link from "next/link";
+import Header from "../components/Header";
 
 const crimsonText = Crimson_Text({
   subsets: ["latin"],
@@ -52,16 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`min-h-screen antialiased ${inter.variable} ${crimsonText.variable}`}>
         <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 lg:py-12">
-          <header className="mb-6 sm:mb-8 lg:mb-10">
-            <Link href="/" className="inline-block">
-              <img 
-                src="/img/logo-horizontal.svg" 
-                alt="BookBlend" 
-                className="h-12 w-auto mb-2"
-              />
-            </Link>
-            <p className="text-sm text-gray-600">Like Spotify Blend, but for books.</p>
-          </header>
+          <Header />
           {children}
         </div>
       </body>
