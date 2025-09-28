@@ -9,7 +9,7 @@ export default function Header() {
           <img 
             src="/img/logo-horizontal.svg" 
             alt="BookBlend" 
-            className="h-12 w-auto mb-2"
+            className="h-12 w-auto mb-1"
           />
         </Link>
         <p className="text-sm text-gray-600">Like Spotify Blend, but for books.</p>
