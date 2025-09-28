@@ -79,8 +79,8 @@ html, body {
 }
 
 body {
-  /* Noise texture background */
-  background: url('/img/noise.png') repeat;
+  /* Solid background color for better mobile compatibility */
+  background: #FDDEA9;
   font-family: var(--font-inter), sans-serif;
   color: #1f2937; /* Much darker gray for better contrast */
 }
