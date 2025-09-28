@@ -288,7 +288,7 @@ export default function Page() {
         <p className="text-sm text-gray-700">
           To find yours, open {" "}
           <a href="https://www.goodreads.com/" target="_blank" rel="noreferrer" className="text-[#6366f1] underline">Goodreads</a>
-          {" →  "}Profile picture{" → "}Profile. Copy the URL (works with both username and full profile URLs).
+          {" →  "}Profile picture{" → "}Profile. Copy the URL.
         </p>
         <div className="flex gap-2 items-end">
           {/* Helper to sanitize Goodreads app share text on paste */}
