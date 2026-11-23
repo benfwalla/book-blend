@@ -95,7 +95,8 @@ export default function SharePage() {
     try {
       // Immediately redirect to blend page with loading state
       // The blend page will handle the actual API call
-      router.push(`/blend/new?user1=${shareUserId}&user2=${secondUserId}`);
+      const blendParams = new URLSearchParams({ user1: shareUserId, user2: secondUserId });
+      router.push(`/blend/new?${blendParams.toString()}`);
     } catch (err: any) {
       setError("Failed to start blend");
       setLoadingBlend(false);

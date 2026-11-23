@@ -59,11 +59,12 @@ export default function Page() {
       return;
     }
     const uid = parsed.data;
-    setUserId(uid);
 
     setLoadingUser(true);
     try {
       const data = await getUser(uid);
+      const resolvedUserId = data.user.id;
+      setUserId(resolvedUserId);
       setUserData(data);
       // Sort friends by book_count desc (missing/empty treated as 0)
       const sorted = (data.friends || []).slice().sort((a, b) => {
@@ -74,7 +75,7 @@ export default function Page() {
       setFriends(sorted);
       // persist last used primary user id, display value, and complete user data
       try {
-        localStorage.setItem("bb_last_user_id", uid);
+        localStorage.setItem("bb_last_user_id", resolvedUserId);
         localStorage.setItem("bb_last_user_display", rawUser);
         localStorage.setItem("bb_last_user_data", JSON.stringify(data));
       } catch {}
@@ -84,7 +85,7 @@ export default function Page() {
         setShareUrl(`${window.location.origin}/share/${data.user.slug}`);
       } else {
         // Fallback to user ID if no slug yet (shouldn't happen with new system)
-        setShareUrl(`${window.location.origin}/share/${uid}`);
+        setShareUrl(`${window.location.origin}/share/${resolvedUserId}`);
       }
     } catch (e: any) {
       // Convert technical errors to user-friendly messages
@@ -133,7 +134,8 @@ export default function Page() {
     
     // Immediately redirect to blend page with loading state
     // The blend page will handle the actual API call
-    router.push(`/blend/new?user1=${userId}&user2=${secondUserId}`);
+    const blendParams = new URLSearchParams({ user1: userId, user2: secondUserId });
+    router.push(`/blend/new?${blendParams.toString()}`);
     
     // persist primary user only (user data already saved from handleFetchUser)
     try {
@@ -223,7 +225,7 @@ export default function Page() {
       if (savedUserId && savedUserData && !userData) {
         try {
           const parsedData = JSON.parse(savedUserData);
-          setUserId(savedUserId);
+          setUserId(parsedData.user?.id || savedUserId);
           setUserData(parsedData);
           // Sort friends by book_count desc (same as in handleFetchUser)
           const sorted = (parsedData.friends || []).slice().sort((a: Friend, b: Friend) => {
@@ -236,7 +238,7 @@ export default function Page() {
           if (parsedData.user.slug) {
             setShareUrl(`${window.location.origin}/share/${parsedData.user.slug}`);
           } else {
-            setShareUrl(`${window.location.origin}/share/${savedUserId}`);
+            setShareUrl(`${window.location.origin}/share/${parsedData.user?.id || savedUserId}`);
           }
         } catch {
           // If parsing fails, ignore cached data

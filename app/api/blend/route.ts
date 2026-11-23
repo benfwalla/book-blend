@@ -3,15 +3,63 @@ import { saveBlend, getLatestBlend, cacheUser } from "@/lib/database";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BOOKBLEND_BASE_URL || "https://book-blend-backend.vercel.app";
 
+async function resolveUserId(identifier: string): Promise<string> {
+  if (/^\d+$/.test(identifier)) {
+    return identifier;
+  }
+
+  if (!identifier.startsWith("username:")) {
+    throw new Error("Invalid Goodreads user identifier");
+  }
+
+  const username = identifier.slice("username:".length);
+  const url = new URL("/user", BASE_URL);
+  url.searchParams.set("username", username);
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; BookBlend/1.0)",
+      Accept: "application/json, text/plain, */*",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Unable to resolve Goodreads username: ${username}`);
+  }
+
+  const data = await response.json();
+  const resolvedId = String(data?.user?.id || "");
+  if (!/^\d+$/.test(resolvedId)) {
+    throw new Error(`Goodreads did not return a valid user ID for: ${username}`);
+  }
+
+  return resolvedId;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const user_id1 = searchParams.get("user_id1");
-    const user_id2 = searchParams.get("user_id2");
+    const requestedUserId1 = searchParams.get("user_id1");
+    const requestedUserId2 = searchParams.get("user_id2");
     const force_new = searchParams.get("force_new") === "true";
 
-    if (!user_id1 || !user_id2) {
+    if (!requestedUserId1 || !requestedUserId2) {
       return NextResponse.json({ error: "user_id1 and user_id2 are required" }, { status: 400 });
+    }
+
+    let user_id1: string;
+    let user_id2: string;
+    try {
+      [user_id1, user_id2] = await Promise.all([
+        resolveUserId(requestedUserId1),
+        resolveUserId(requestedUserId2),
+      ]);
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error?.message || "Invalid Goodreads user identifier", user_friendly: true },
+        { status: 400 },
+      );
     }
 
     // Check for existing blend (unless force_new is true)
@@ -46,38 +94,19 @@ export async function GET(req: Request) {
     // Debug logging for production issues
     if (!upstream.ok) {
       const errorText = await upstream.text();
-      
-      // Check for specific error cases that we can make more user-friendly
-      let userFriendlyError = null;
-      let errorType = "generic";
-      
+      let upstreamError: any = null;
       try {
-        const errorJson = JSON.parse(errorText);
-        if (errorJson.error === "user_shelves" || errorText.includes("user_shelves")) {
-          userFriendlyError = "One of the users doesn't have any books in their library";
-          errorType = "no_books";
-        }
+        upstreamError = JSON.parse(errorText);
       } catch {
-        // If we can't parse as JSON, check the raw text
-        if (errorText.includes("user_shelves")) {
-          userFriendlyError = "One of the users doesn't have any books in their library";
-          errorType = "no_books";
-        }
+        // Preserve the raw response below when the upstream body is not JSON.
       }
-      
-      if (userFriendlyError) {
-        return NextResponse.json({ 
-          error: userFriendlyError,
-          error_type: errorType,
-          user_friendly: true
-        }, { status: 400 }); // Use 400 for user errors instead of 500
-      }
-      
-      return NextResponse.json({ 
-        error: `Upstream API error: ${upstream.status} ${upstream.statusText}`,
-        details: errorText,
-        url: url.toString()
-      }, { status: 500 });
+
+      return NextResponse.json({
+        error: upstreamError?.error || `Upstream API error: ${upstream.status} ${upstream.statusText}`,
+        error_type: upstreamError?.error_type || "upstream_error",
+        user_friendly: Boolean(upstreamError?.user_friendly),
+        ...(!upstreamError && { details: errorText }),
+      }, { status: upstream.status });
     }
     
     const text = await upstream.text();

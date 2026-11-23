@@ -122,9 +122,11 @@ export default function BlendPage() {
           }
 
           // Create new blend
-          const response = await fetch(`/api/blend?user_id1=${user1}&user_id2=${user2}`);
+          const blendParams = new URLSearchParams({ user_id1: user1, user_id2: user2 });
+          const response = await fetch(`/api/blend?${blendParams.toString()}`);
           if (!response.ok) {
-            throw new Error(`Failed to create blend: ${response.status}`);
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.error || `Failed to create blend: ${response.status}`);
           }
           
           const data = await response.json();
