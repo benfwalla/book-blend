@@ -2,12 +2,14 @@
 
 import { ArrowSquareOut, Link, Check, BookOpen, Clock, Calendar, TrendUp, Star, Info } from "phosphor-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { JsonView } from "../../../components/json-view";
 import { Button } from "../../../components/ui/button";
 import { Spinner } from "../../../components/ui/spinner";
 import { Avatar } from "../../../components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getCachedUser } from "../../../lib/database";
+import { highResolutionGoodreadsImage } from "../../../lib/goodreads-images";
 import { useRive } from "@rive-app/react-canvas";
 
 interface BlendData {
@@ -27,6 +29,7 @@ interface BlendData {
       id: string;
       name: string;
       image_url?: string;
+      profile_url?: string;
       metrics?: {
         read_count?: number;
         avg_rating?: number;
@@ -94,6 +97,10 @@ interface User {
   id: string;
   name: string;
   image_url: string | null;
+}
+
+function goodreadsProfileUrl(userId: string, profileUrl?: string) {
+  return profileUrl || `https://www.goodreads.com/user/show/${userId}`;
 }
 
 export default function BlendPage() {
@@ -337,7 +344,7 @@ export default function BlendPage() {
     if (blendData?.common_books) {
       blendData.common_books.slice(0, 6).forEach(book => {
         if (book.image && !book.image.includes('nophoto')) {
-          images.push(book.image);
+          images.push(highResolutionGoodreadsImage(book.image)!);
         }
       });
     }
@@ -419,35 +426,45 @@ export default function BlendPage() {
           {/* User Avatars */}
           <div className="flex items-center justify-center gap-8 mb-8">
             <div className="text-center">
-              <div 
-                className="cursor-pointer transition-transform hover:scale-105"
-                onClick={() => user1Id && window.open(`https://www.goodreads.com/user/show/${user1Id}`, '_blank')}
-              >
-                <img 
-                  src={user1Id ? blendData.users?.[user1Id]?.image_url : undefined} 
-                  alt={user1Name}
-                  className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
-                  style={{borderColor: '#DBD5C1'}}
-                />
-              </div>
-              <p className="mt-2 font-medium text-gray-900">{user1Name}</p>
+              {user1Id && (
+                <a
+                  href={goodreadsProfileUrl(user1Id, blendData.users?.[user1Id]?.profile_url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex flex-col items-center"
+                  aria-label={`Open ${user1Name}'s Goodreads profile`}
+                >
+                  <Avatar
+                    src={blendData.users?.[user1Id]?.image_url}
+                    alt={user1Name}
+                    size={80}
+                    className="border-4 border-[#DBD5C1] shadow-md ring-0 transition-transform group-hover:scale-105 group-focus-visible:scale-105"
+                  />
+                  <span className="mt-2 font-medium text-gray-900 group-hover:underline">{user1Name}</span>
+                </a>
+              )}
             </div>
             
             <div className="text-4xl text-gray-400 font-light">×</div>
             
             <div className="text-center">
-              <div 
-                className="cursor-pointer transition-transform hover:scale-105"
-                onClick={() => user2Id && window.open(`https://www.goodreads.com/user/show/${user2Id}`, '_blank')}
-              >
-                <img 
-                  src={user2Id ? blendData.users?.[user2Id]?.image_url : undefined} 
-                  alt={user2Name}
-                  className="w-20 h-20 rounded-full border-4 shadow-md object-cover"
-                  style={{borderColor: '#DBD5C1'}}
-                />
-              </div>
-              <p className="mt-2 font-medium text-gray-900">{user2Name}</p>
+              {user2Id && (
+                <a
+                  href={goodreadsProfileUrl(user2Id, blendData.users?.[user2Id]?.profile_url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex flex-col items-center"
+                  aria-label={`Open ${user2Name}'s Goodreads profile`}
+                >
+                  <Avatar
+                    src={blendData.users?.[user2Id]?.image_url}
+                    alt={user2Name}
+                    size={80}
+                    className="border-4 border-[#DBD5C1] shadow-md ring-0 transition-transform group-hover:scale-105 group-focus-visible:scale-105"
+                  />
+                  <span className="mt-2 font-medium text-gray-900 group-hover:underline">{user2Name}</span>
+                </a>
+              )}
             </div>
           </div>
 
@@ -525,18 +542,21 @@ export default function BlendPage() {
                   if (!user) return null;
                   return (
                     <div key={user.id} className="p-3 sm:p-4 text-center">
-                      <div className="flex flex-col items-center gap-2 sm:gap-3">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 shadow-md" style={{borderColor: '#DBD5C1'}}>
-                          <img 
-                            src={user.image_url} 
-                            alt={user.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-sm sm:text-xl text-gray-900">{user.name}</h3>
-                        </div>
-                      </div>
+                      <a
+                        href={goodreadsProfileUrl(userId, user.profile_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex flex-col items-center gap-2 sm:gap-3"
+                        aria-label={`Open ${user.name}'s Goodreads profile`}
+                      >
+                        <Avatar
+                          src={user.image_url}
+                          alt={user.name}
+                          size={64}
+                          className="border-4 border-[#DBD5C1] shadow-md ring-0 transition-transform group-hover:scale-105 group-focus-visible:scale-105"
+                        />
+                        <h3 className="font-semibold text-sm sm:text-xl text-gray-900 group-hover:underline">{user.name}</h3>
+                      </a>
                     </div>
                   );
                 })}
@@ -685,9 +705,12 @@ export default function BlendPage() {
                       {book ? (
                         <div className="flex items-start gap-3">
                           {book.image && !book.image.includes('nophoto') && (
-                            <img 
-                              src={book.image} 
+                            <Image
+                              src={highResolutionGoodreadsImage(book.image)!}
                               alt={book.title}
+                              width={64}
+                              height={96}
+                              sizes="(min-width: 640px) 32px, 24px"
                               className="w-6 h-8 sm:w-8 sm:h-10 object-contain rounded-sm shadow-sm flex-shrink-0"
                             />
                           )}
@@ -718,9 +741,12 @@ export default function BlendPage() {
                       {book ? (
                         <div className="flex items-start gap-3">
                           {book.image && !book.image.includes('nophoto') && (
-                            <img 
-                              src={book.image} 
+                            <Image
+                              src={highResolutionGoodreadsImage(book.image)!}
                               alt={book.title}
+                              width={64}
+                              height={96}
+                              sizes="(min-width: 640px) 32px, 24px"
                               className="w-6 h-8 sm:w-8 sm:h-10 object-contain rounded-sm shadow-sm flex-shrink-0"
                             />
                           )}
@@ -884,15 +910,17 @@ export default function BlendPage() {
                     className="bg-white rounded-lg p-3 shadow-md border hover:shadow-lg transition-all duration-200 cursor-pointer group"
                     onClick={handleBookClick}
                   >
-                    <div className="relative overflow-hidden">
+                    <div className="relative h-32 mb-2 overflow-hidden">
                       {book.image && !book.image.includes('nophoto') ? (
-                        <img 
-                          src={book.image} 
+                        <Image
+                          src={highResolutionGoodreadsImage(book.image)!}
                           alt={book.title}
-                          className="w-full h-32 object-contain rounded-sm mb-2 group-hover:opacity-15 transition-opacity duration-200"
+                          fill
+                          sizes="(min-width: 1024px) 20vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+                          className="object-contain rounded-sm group-hover:opacity-15 transition-opacity duration-200"
                         />
                       ) : (
-                        <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center mb-2 group-hover:opacity-15 transition-opacity duration-200">
+                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center group-hover:opacity-15 transition-opacity duration-200">
                           <span className="text-gray-400 text-xs">📚</span>
                         </div>
                       )}
@@ -909,16 +937,22 @@ export default function BlendPage() {
                     {/* Profile Picture Status Indicators */}
                     <div className="flex justify-center items-center gap-1">
                       <div className="relative">
-                        <img 
-                          src={user1Id ? blendData.users?.[user1Id]?.image_url : undefined} 
-                          alt={user1Name}
-                          className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user1Read ? 'border-green-500' : 'opacity-50'}`}
-                          style={!user1Read ? {borderColor: '#DBD5C1'} : {}}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (user1Id) window.open(`https://www.goodreads.com/user/show/${user1Id}`, '_blank');
-                          }}
-                        />
+                        {user1Id && (
+                          <a
+                            href={goodreadsProfileUrl(user1Id, blendData.users?.[user1Id]?.profile_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${user1Name}'s Goodreads profile`}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <Avatar
+                              src={blendData.users?.[user1Id]?.image_url}
+                              alt={user1Name}
+                              size={24}
+                              className={`ring-0 border-2 hover:scale-110 transition-transform ${user1Read ? 'border-green-500' : 'border-[#DBD5C1] opacity-50'}`}
+                            />
+                          </a>
+                        )}
                         {user1Read && (
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
                             <span className="text-white text-xs">✓</span>
@@ -926,16 +960,22 @@ export default function BlendPage() {
                         )}
                       </div>
                       <div className="relative">
-                        <img 
-                          src={user2Id ? blendData.users?.[user2Id]?.image_url : undefined} 
-                          alt={user2Name}
-                          className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${user2Read ? 'border-green-500' : 'opacity-50'}`}
-                          style={!user2Read ? {borderColor: '#DBD5C1'} : {}}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (user2Id) window.open(`https://www.goodreads.com/user/show/${user2Id}`, '_blank');
-                          }}
-                        />
+                        {user2Id && (
+                          <a
+                            href={goodreadsProfileUrl(user2Id, blendData.users?.[user2Id]?.profile_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${user2Name}'s Goodreads profile`}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <Avatar
+                              src={blendData.users?.[user2Id]?.image_url}
+                              alt={user2Name}
+                              size={24}
+                              className={`ring-0 border-2 hover:scale-110 transition-transform ${user2Read ? 'border-green-500' : 'border-[#DBD5C1] opacity-50'}`}
+                            />
+                          </a>
+                        )}
                         {user2Read && (
                           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
                             <span className="text-white text-xs">✓</span>

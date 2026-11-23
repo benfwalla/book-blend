@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getUserBySlug, getCachedUser } from '@/lib/database';
+import { highResolutionGoodreadsImage } from '@/lib/goodreads-images';
 
 export const runtime = 'edge';
 
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
                 boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
               }}>
                 <img
-                  src={user1.image_url}
+                  src={highResolutionGoodreadsImage(user1.image_url)}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -93,7 +94,7 @@ export async function GET(request: Request) {
                 boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
               }}>
                 <img
-                  src={user2.image_url}
+                  src={highResolutionGoodreadsImage(user2.image_url)}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -181,7 +182,7 @@ export async function GET(request: Request) {
               marginBottom: '40px',
             }}>
               <img
-                src={user.image_url}
+                src={highResolutionGoodreadsImage(user.image_url)}
                 style={{
                   width: '100%',
                   height: '100%',
