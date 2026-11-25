@@ -65,7 +65,7 @@ export async function GET(req: Request) {
     // Check for existing blend (unless force_new is true)
     if (!force_new) {
       const existingBlend = await getLatestBlend(user_id1, user_id2);
-      if (existingBlend) {
+      if (existingBlend?.blend_data?.data_version === 2) {
         // Return existing blend with metadata
         return NextResponse.json({
           ...existingBlend.blend_data,

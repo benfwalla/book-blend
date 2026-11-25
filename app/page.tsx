@@ -78,6 +78,7 @@ export default function Page() {
         localStorage.setItem("bb_last_user_id", resolvedUserId);
         localStorage.setItem("bb_last_user_display", rawUser);
         localStorage.setItem("bb_last_user_data", JSON.stringify(data));
+        localStorage.setItem("bb_last_user_data_version", "2");
       } catch {}
       
       // Generate share link using the user's slug if available
@@ -217,12 +218,13 @@ export default function Page() {
       const display = localStorage.getItem("bb_last_user_display");
       const savedUserId = localStorage.getItem("bb_last_user_id");
       const savedUserData = localStorage.getItem("bb_last_user_data");
+      const savedUserDataVersion = localStorage.getItem("bb_last_user_data_version");
       
       if (display) setRawUser(display);
       else if (savedUserId) setRawUser(savedUserId);
       
       // Restore cached user data if available
-      if (savedUserId && savedUserData && !userData) {
+      if (savedUserId && savedUserData && savedUserDataVersion === "2" && !userData) {
         try {
           const parsedData = JSON.parse(savedUserData);
           setUserId(parsedData.user?.id || savedUserId);

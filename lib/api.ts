@@ -4,6 +4,7 @@ export interface Friend {
   image_url: string;
   profile_url: string;
   book_count?: string;
+  connection_type?: "friend" | "following" | "profile_connection";
 }
 
 export interface UserInfo {

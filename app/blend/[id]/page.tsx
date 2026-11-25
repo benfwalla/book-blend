@@ -62,6 +62,12 @@ interface BlendData {
       compatibility_score: number;
       compatibility_details: string;
     };
+    connection_insights?: {
+      summary: string;
+      shared_signals: string[];
+      taste_bridges: string[];
+      conversation_starters: string[];
+    };
     genre_insights?: {
       shared_genres: string[];
       recommendations: string[];
@@ -769,6 +775,35 @@ export default function BlendPage() {
         {/* Your Reading Connection */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900">Your Reading Connection</h2>
+
+            {blendData.ai_insights?.connection_insights?.summary && (
+              <div className="bg-white rounded-lg p-6 shadow-md border">
+                <h3 className="font-semibold text-lg mb-2">Why This Blend Works</h3>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-6">
+                  {blendData.ai_insights.connection_insights.summary}
+                </p>
+
+                <div className="grid gap-5 md:grid-cols-3">
+                  {[
+                    { title: "What clicks", items: blendData.ai_insights.connection_insights.shared_signals },
+                    { title: "Where you can trade notes", items: blendData.ai_insights.connection_insights.taste_bridges },
+                    { title: "Ask each other", items: blendData.ai_insights.connection_insights.conversation_starters },
+                  ].map((section) => (
+                    <div key={section.title}>
+                      <h4 className="font-medium text-gray-900 mb-2">{section.title}</h4>
+                      <ul className="space-y-2">
+                        {section.items.map((item, index) => (
+                          <li key={index} className="text-sm text-gray-600 leading-relaxed flex gap-2">
+                            <span className="text-indigo-500" aria-hidden="true">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Shared Interests */}
             {blendData.ai_insights?.genre_insights && (

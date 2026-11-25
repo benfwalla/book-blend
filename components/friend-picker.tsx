@@ -31,7 +31,7 @@ export function FriendPicker({
   return (
     <div className="max-h-64 overflow-auto rounded-md border border-gray-200 bg-white">
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b px-3 py-2 text-xs font-medium text-gray-600">
-        Friends
+        Friends & follows ({friends.length})
       </div>
       {friends.length === 0 ? (
         <div className="p-3 text-sm text-gray-600">
